@@ -1,35 +1,18 @@
 import { CONSTANTS, PeriodType } from "../shared/constants";
 import { IAnalysisData } from "../analysis/analysis-types";
-import { SchwabAPI } from "../shared/services/trading-api";
 import { StrategyUtil } from "../shared/utilities/strategy-util";
-import {
-  ICandleDataMap,
-  ICandle,
-  ITestConfig,
-  ICandleData,
-  IPolygonCandle,
-  IPolygonCandleResponse,
-} from "../types/back-test-types";
+import { ICandleDataMap, ICandle, ITestConfig } from "../types/back-test-types";
 import { IData } from "../types/general-types";
 import { IFilter } from "../types/strategy-types";
 import { IStockDataBackTest } from "../types/data-processing-types";
-
-export const transformCandles = (candles: IPolygonCandle[]) => {
-  return candles.map((candle) => ({
-    datetime: candle.t,
-    open: candle.o,
-    high: candle.h,
-    low: candle.l,
-    close: candle.c,
-    volume: candle.v,
-  }));
-};
+import {
+  CandleSource,
+  IDailyAdjustContext,
+} from "./candle-sources/candle-source";
+import { createCandleSource } from "./candle-sources/create-candle-source";
 
 export class BackTestHelper {
-  useShwab: boolean;
-  constructor(useShwab = true) {
-    this.useShwab = useShwab;
-  }
+  constructor(private readonly candleSource: CandleSource = createCandleSource()) {}
 
   candleData: Partial<Record<PeriodType, ICandleDataMap>> = {};
 
@@ -131,14 +114,14 @@ export class BackTestHelper {
     const easternDate = new Date(
       now.toLocaleString("en-US", { timeZone: "America/New_York" }),
     );
-    let easternOffsetMin = Math.round(
-      (now.getTime() - easternDate.getTime()) / 60000,
-    );
-
-    //const dayPeriodTradeTime = CONSTANTS.DAY_PERIOD_TRADE_TIME - easternOffsetMin;
+    const dailyAdjustContext: IDailyAdjustContext = {
+      isUTC,
+      easternOffsetMin: Math.round(
+        (now.getTime() - easternDate.getTime()) / 60000,
+      ),
+    };
 
     for (const period of periods) {
-      const periodType = period === PeriodType.DAY ? "month" : "day";
       const candleData: ICandleDataMap = {};
 
       // Initialize candle data for all symbols
@@ -151,37 +134,12 @@ export class BackTestHelper {
         };
       }
 
-      // Get history for the current period
-      const transformedCandleResponses = this.useShwab
-        ? await this.getHistory(
-            periodType,
-            period === PeriodType.DAY
-              ? 1
-              : period === PeriodType.HOUR
-                ? PeriodType.THIRTY_MINUTES
-                : period,
-            allNames,
-            startTime,
-            endTime,
-          )
-        : (
-            await this.getHistoryPolygon(
-              String(
-                period === PeriodType.DAY
-                  ? 1
-                  : period === PeriodType.HOUR
-                    ? PeriodType.THIRTY_MINUTES
-                    : period,
-              ),
-              period === PeriodType.DAY ? "day" : "minute",
-              allNames,
-              { start: String(startTime), end: String(endTime) },
-            )
-          ).map((response) => ({
-            empty: response.results.length === 0,
-            symbol: response.ticker,
-            candles: transformCandles(response.results),
-          }));
+      const transformedCandleResponses = await this.candleSource.fetch(
+        period,
+        allNames,
+        startTime,
+        endTime,
+      );
 
       //Process responses and populate candle data
 
@@ -191,7 +149,7 @@ export class BackTestHelper {
           continue;
         }
 
-        if (periodType === "month") {
+        if (period === PeriodType.DAY) {
           // Adjust datetime for daily candles to reflect market close time
           candleData[response.symbol].candles = response.candles
             .slice()
@@ -202,113 +160,16 @@ export class BackTestHelper {
                 (1440 +
                   60 * date.getHours() +
                   date.getMinutes() -
-                  easternOffsetMin) %
+                  dailyAdjustContext.easternOffsetMin) %
                 1440;
-              const newCandle = { ...candle };
-              switch (mins) {
-                case 0:
-                  if (this.useShwab && isUTC) {
-                    easternOffsetMin -= 60;
-
-                    console.log(
-                      "DST ended, adjusting offset to",
-                      easternOffsetMin,
-                    );
-                    newCandle.datetime =
-                      candle.datetime +
-                      (15 * CONSTANTS.MILLIS_IN_HOUR -
-                        CONSTANTS.MILLIS_IN_MINUTE);
-                  } else {
-                    newCandle.datetime =
-                      candle.datetime +
-                      (16 * CONSTANTS.MILLIS_IN_HOUR -
-                        CONSTANTS.MILLIS_IN_MINUTE);
-                  }
-                  break;
-                case 60:
-                  if (isUTC && !this.useShwab) {
-                    easternOffsetMin += 60;
-                    newCandle.datetime =
-                      candle.datetime +
-                      (16 * CONSTANTS.MILLIS_IN_HOUR -
-                        CONSTANTS.MILLIS_IN_MINUTE);
-                  } else {
-                    newCandle.datetime =
-                      candle.datetime +
-                      (15 * CONSTANTS.MILLIS_IN_HOUR -
-                        CONSTANTS.MILLIS_IN_MINUTE);
-                  }
-                  break;
-                case 120:
-                  if (isUTC && this.useShwab) {
-                    easternOffsetMin += 60;
-
-                    console.log(
-                      "DST started, adjusting offset to",
-                      easternOffsetMin,
-                    );
-                    newCandle.datetime =
-                      candle.datetime +
-                      (15 * CONSTANTS.MILLIS_IN_HOUR -
-                        CONSTANTS.MILLIS_IN_MINUTE);
-                  }
-                  break;
-                case 570:
-                  throw new Error(
-                    "Unexpected time for daily candle adjustment, found 570 minutes since midnight. This should not happen.",
-                  );
-                  newCandle.datetime =
-                    candle.datetime +
-                    (9 * CONSTANTS.MILLIS_IN_HOUR +
-                      29 * CONSTANTS.MILLIS_IN_MINUTE);
-                  break;
-                case 960:
-                  throw new Error(
-                    "Unexpected time for daily candle adjustment, found 960 minutes since midnight. This should not happen.",
-                  );
-                  newCandle.datetime =
-                    candle.datetime - CONSTANTS.MILLIS_IN_MINUTE;
-                  break;
-                default: {
-                  let throwError = true;
-                  if (isUTC) {
-                    // if (mins === 510) {
-                    //     easternOffsetMin -= 60;
-                    //     throwError = false;
-                    //     newCandle.datetime = candle.datetime + (9 * CONSTANTS.MILLIS_IN_HOUR + (29 * CONSTANTS.MILLIS_IN_MINUTE));
-                    //     console.log('DST ended, adjusting offset to', easternOffsetMin);
-                    // } else if (mins === 630) {
-                    //     throwError = false;
-                    //     easternOffsetMin += 60;
-                    //     newCandle.datetime = candle.datetime + (9 * CONSTANTS.MILLIS_IN_HOUR -  CONSTANTS.MILLIS_IN_MINUTE);
-                    //     console.log('DST started, adjusting offset to', easternOffsetMin);
-                    // } else if (mins === 900) {
-                    //     throwError = false;
-                    //     easternOffsetMin -= 60;
-                    //     newCandle.datetime = candle.datetime -  CONSTANTS.MILLIS_IN_MINUTE;
-                    // } else if (mins === 1020) {
-                    //     throwError = false;
-                    //     easternOffsetMin += 60;
-                    //     newCandle.datetime = candle.datetime -  CONSTANTS.MILLIS_IN_MINUTE;
-                    // } else
-                    if (mins === 1380 && !this.useShwab) {
-                      throwError = false;
-                      easternOffsetMin -= 60;
-                      newCandle.datetime =
-                        candle.datetime +
-                        (16 * CONSTANTS.MILLIS_IN_HOUR -
-                          CONSTANTS.MILLIS_IN_MINUTE);
-                    }
-                  }
-                  if (throwError) {
-                    throw new Error(
-                      `Invalid time for daily candle adjustment at this time: ${new Date(candle.datetime).toISOString()}`,
-                    );
-                  }
-                  break;
-                }
-              }
-              return newCandle;
+              return {
+                ...candle,
+                datetime: this.candleSource.adjustDailyCandleTime(
+                  candle,
+                  mins,
+                  dailyAdjustContext,
+                ),
+              };
             });
         } else if (period === PeriodType.HOUR) {
           // Filter candles to create hourly candles from 30-minute candles
@@ -342,65 +203,6 @@ export class BackTestHelper {
 
     this.candleData = allCandleDataMaps; // Update the class property if needed
     return allCandleDataMaps;
-  }
-
-  /* get candles for each stock symbols */
-  /* get candles for each stock symbols */
-  /* get candles for each stock symbols */
-  async getHistory(
-    periodType: string,
-    frequency: number,
-    stockNames: string[],
-    startTime: number,
-    endTime?: number,
-  ) {
-    const frequencyType = periodType === "day" ? "minute" : "daily";
-
-    const batchSize = 250;
-    const results: ICandleData[] = [];
-    const batchDelayMs = 10000; // 10 seconds
-
-    for (let i = 0; i < stockNames.length; i += batchSize) {
-      const stockBatch = stockNames.slice(i, i + batchSize);
-      const batch = stockBatch.map((stock) =>
-        SchwabAPI.getHistoryWithBounds(
-          stock,
-          periodType,
-          frequencyType,
-          frequency,
-          startTime,
-          endTime ? endTime : Date.now(),
-        ),
-      );
-      const batchResults = await Promise.all(batch);
-      results.push(...batchResults);
-
-      // Wait 10 seconds before next batch (except after the last batch)
-      if (i + batchSize < stockNames.length) {
-        await new Promise((resolve) => setTimeout(resolve, batchDelayMs));
-      }
-    }
-
-    return results;
-  }
-  getHistoryPolygon(
-    multiplier: string,
-    periodType: string,
-    stockNames: string[],
-    timeRange: { start: string; end: string },
-  ) {
-    const promises = new Array<Promise<IPolygonCandleResponse>>();
-    for (const stock of stockNames) {
-      promises.push(
-        SchwabAPI.getStockHistoryPolygon(
-          stock,
-          periodType,
-          multiplier,
-          timeRange,
-        ),
-      );
-    }
-    return Promise.all(promises);
   }
 
   collectData(

@@ -1,6 +1,8 @@
 import { PeriodType, CONSTANTS } from "../../shared/constants";
 import { IAnalysisData } from "../../analysis/analysis-types";
 import { BackTestHelper } from "../../back-testing/back-test-helper";
+import { SchwabCandleSource } from "../../back-testing/candle-sources/schwab-candle-source";
+import { PolygonCandleSource } from "../../back-testing/candle-sources/polygon-candle-source";
 import { SchwabAPI } from "../../shared/services/trading-api";
 import { ICandleData } from "../../types/back-test-types";
 import { IFilter } from "../../types/strategy-types";
@@ -19,7 +21,7 @@ describe("BackTestHelper", () => {
   let backTestHelper: BackTestHelper;
 
   beforeAll(() => {
-    backTestHelper = new BackTestHelper(true);
+    backTestHelper = new BackTestHelper(new SchwabCandleSource());
   });
 
   const mockAppleCandleData: ICandleData = {
@@ -100,7 +102,7 @@ describe("BackTestHelper", () => {
       });
     });
 
-    describe("UTC branch adjustments (Polygon / useShwab=false)", () => {
+    describe("UTC branch adjustments (Polygon)", () => {
       // System time fixed to 2024-01-15T12:00:00Z (EST = UTC-5 → easternOffsetMin = 300)
       // Candle time chosen so that `mins` hits the target switch case.
       // mins = (1440 + 60*date.getHours() + date.getMinutes() - 300) % 1440  (UTC machine)
@@ -114,7 +116,7 @@ describe("BackTestHelper", () => {
         jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
         jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "UTC" }) }) as unknown as Intl.DateTimeFormat);
 
-        const helper = new BackTestHelper(false);
+        const helper = new BackTestHelper(new PolygonCandleSource());
         // UTC 06:00 → mins = (1440 + 360 - 300) % 1440 = 60
         const candleTime = Date.UTC(2024, 0, 15, 6, 0, 0);
 
@@ -139,7 +141,7 @@ describe("BackTestHelper", () => {
         jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
         jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "UTC" }) }) as unknown as Intl.DateTimeFormat);
 
-        const helper = new BackTestHelper(false);
+        const helper = new BackTestHelper(new PolygonCandleSource());
         // UTC 04:00 → mins = (1440 + 240 - 300) % 1440 = 1380
         const candleTime = Date.UTC(2024, 0, 15, 4, 0, 0);
 
@@ -164,7 +166,7 @@ describe("BackTestHelper", () => {
         jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
         jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "America/New_York" }) }) as unknown as Intl.DateTimeFormat);
 
-        const helper = new BackTestHelper(false);
+        const helper = new BackTestHelper(new PolygonCandleSource());
         // Same UTC 04:00 candle → mins=1380, but isUTC=false → throwError stays true → throws
         const candleTime = Date.UTC(2024, 0, 15, 4, 0, 0);
 
@@ -774,7 +776,7 @@ describe("BackTestHelper", () => {
 
     it("creates requests lazily per batch and does not start later batch early", async () => {
       jest.useFakeTimers();
-      const helper = new BackTestHelper(true);
+      const source = new SchwabCandleSource();
       const symbols = Array.from({ length: 251 }, (_, i) => `SYM${i}`);
 
       const resolvedCandle: ICandleData = {
@@ -798,7 +800,7 @@ describe("BackTestHelper", () => {
           return Promise.resolve({ ...resolvedCandle, symbol });
         });
 
-      const historyPromise = helper.getHistory("day", 1, symbols, 1, 2);
+      const historyPromise = source.fetch(PeriodType.MINUTE, symbols, 1, 2);
 
       await Promise.resolve();
       expect(spy).toHaveBeenCalledTimes(250);
@@ -814,7 +816,7 @@ describe("BackTestHelper", () => {
     });
 
     it("rejects when a batch request fails", async () => {
-      const helper = new BackTestHelper(true);
+      const source = new SchwabCandleSource();
       const rejection = new Error("429 too many requests");
 
       jest
@@ -822,7 +824,7 @@ describe("BackTestHelper", () => {
         .mockRejectedValueOnce(rejection);
 
       await expect(
-        helper.getHistory("day", 1, ["AAPL"], 1, 2),
+        source.fetch(PeriodType.MINUTE, ["AAPL"], 1, 2),
       ).rejects.toThrow("429 too many requests");
     });
   });

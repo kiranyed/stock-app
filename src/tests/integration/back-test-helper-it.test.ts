@@ -1,5 +1,7 @@
 //import dotenv from "dotenv";
 import { BackTestHelper } from "../../back-testing/back-test-helper";
+import { SchwabCandleSource } from "../../back-testing/candle-sources/schwab-candle-source";
+import { PolygonCandleSource } from "../../back-testing/candle-sources/polygon-candle-source";
 import { SchwabAPI } from "../../shared/services/trading-api";
 import { ITestConfig } from "../../types/back-test-types";
 import { PeriodType } from "../../shared/constants";
@@ -23,18 +25,19 @@ describe("BackTestHelper Integration", () => {
   });
 
   it("should initialize candle data and retrieve test data for each period", async () => {
-    const responses = await helper.getHistory(
-      "day",
-      1,
+    const responses = await new SchwabCandleSource().fetch(
+      PeriodType.MINUTE,
       symbols,
       testConfig.startTime,
       testConfig.endTime,
     );
 
-    const responses2 = await helper.getHistoryPolygon("1", "minute", symbols, {
-      start: String(testConfig.startTime),
-      end: String(testConfig.endTime),
-    });
+    const responses2 = await new PolygonCandleSource().fetch(
+      PeriodType.MINUTE,
+      symbols,
+      testConfig.startTime,
+      testConfig.endTime,
+    );
     expect(responses.length).toBe(symbols.length);
     expect(responses2.length).toBe(symbols.length);
   });
@@ -44,11 +47,11 @@ describe("BackTestHelper Integration", () => {
       startTime: Date.UTC(2025, 0, 1, 9, 0, 0), // Jan 1, 2025 9:00 AM UTC
       endTime: Date.UTC(2025, 1, 1, 21, 0, 0), // Jan 1, 2025 9:00 PM UTC
     };
-    const polygonResponses = await helper.getHistoryPolygon(
-      "1",
-      "minute",
+    const polygonResponses = await new PolygonCandleSource().fetch(
+      PeriodType.MINUTE,
       symbols,
-      { start: String(wideRange.startTime), end: String(wideRange.endTime) },
+      wideRange.startTime,
+      wideRange.endTime,
     );
     expect(polygonResponses.length).toBe(symbols.length);
   });

@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { BackTestHelper } from "../../back-testing/back-test-helper";
+import { SchwabCandleSource } from "../../back-testing/candle-sources/schwab-candle-source";
+import { PolygonCandleSource } from "../../back-testing/candle-sources/polygon-candle-source";
 import { PeriodType } from "../../shared/constants";
 import { SchwabAPI } from "../../shared/services/trading-api";
 import { ICandleData, IPolygonCandleResponse } from "../../types/back-test-types";
@@ -63,7 +65,9 @@ const run = async (
         : toPolygon(intradayData as ICandleData, false),
     );
 
-  const helper = new BackTestHelper(source === "schwab");
+  const helper = new BackTestHelper(
+    source === "schwab" ? new SchwabCandleSource() : new PolygonCandleSource(),
+  );
   try {
     const result = await helper.initCandleData(
       { startTime: 0, endTime: 1 },
@@ -125,7 +129,9 @@ const runRawDaily = async (
       };
     });
 
-  const helper = new BackTestHelper(source === "schwab");
+  const helper = new BackTestHelper(
+    source === "schwab" ? new SchwabCandleSource() : new PolygonCandleSource(),
+  );
   try {
     const result = await helper.initCandleData(
       { startTime: 0, endTime: 1 },
