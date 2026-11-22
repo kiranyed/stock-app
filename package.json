@@ -7,7 +7,7 @@
     "start": "npm install --only=prod && NODE_ENV=production node ./build/startup/start.js",
     "start-dev": "nodemon --config \"./util/nodemon.json\"/",
     "set-access-token": "node ./util/set-access-token.mjs",
-    "test": "jest",
+    "test": "jest && TZ=UTC jest src/tests/back-test/back-test-helper.characterization.test.ts",
     "build": "sh ./util/buildForProd.sh",
     "lint": "eslint . --ext .ts",
     "liquibase-update": "ts-node db/liquibase.ts update",
