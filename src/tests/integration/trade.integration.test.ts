@@ -11,6 +11,10 @@ const GET = "get";
 const POST = "post";
 const DELETE = "delete";
 
+// These tests place and cancel real orders, so they only run when explicitly enabled.
+const runMutationTests = process.env.RUN_SCHWAB_MUTATION_TESTS === "true";
+const itPlacesOrders = runMutationTests ? it : it.skip;
+
 describe("Integration - Trade", () => {
   let agent: ReturnType<typeof supertest.agent>;
   let userToken = "";
@@ -33,7 +37,6 @@ describe("Integration - Trade", () => {
     dollars: 100000,
     quantity: 10,
     price: 5,
-    accountType: AccountType.TRADING,
   };
 
   const request = (url: string, method: string, body?: string | object) => {
@@ -82,11 +85,12 @@ describe("Integration - Trade", () => {
     expect(userToken).toBeTruthy();
   });
 
-  it("makes an order", async () => {
-    const res = await request("/api/trade/make-orders", POST, {
-      orders: [payload],
-      accountType: AccountType.TRADING,
-    });
+  itPlacesOrders("makes an order", async () => {
+    const res = await request(
+      `/api/trade/make-orders?accountType=${AccountType.TRADING}`,
+      POST,
+      { orders: [payload] },
+    );
     expect(res.status).toBe(201);
   }, 10000);
 
@@ -98,15 +102,17 @@ describe("Integration - Trade", () => {
     expect(res.status).toBe(200);
   }, 10000);
 
-  it("makes an options order", async () => {
-    const res = await request("/api/trade/options-trade", POST, {
-      ...optionsBody,
-    });
+  itPlacesOrders("makes an options order", async () => {
+    const res = await request(
+      `/api/trade/options-trade?accountType=${AccountType.TRADING}`,
+      POST,
+      { ...optionsBody },
+    );
     expect(res.status).toBe(201);
     expect(res.body.message).toBe("Placed 1 options order(s)");
   }, 10000);
 
-  it("cancels recent orders", async () => {
+  itPlacesOrders("cancels recent orders", async () => {
     const startTime = timeTestStarted.getTime();
     const endTime = Date.now();
     const res1 = await request(
