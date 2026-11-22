@@ -1,0 +1,41 @@
+.analysis-container {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 2rem 3rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.form-section label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  color: #d10063;
+  font-weight: bold;
+  padding: 1rem 0;
+}
+
+.primary-btn {
+  width: 100%;
+  font-size: 1.1em;
+}
+
+.variable-check-positive {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.variable-check-negative {
+  color: #b91c1c;
+  font-weight: 600;
+}

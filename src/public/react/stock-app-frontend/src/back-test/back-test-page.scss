@@ -1,0 +1,55 @@
+.backtest-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  min-height: 100vh;
+  background-color: #fff;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 420px;
+
+    .p-autocomplete {
+      width: 100%;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      color: #374151;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+
+      .p-button {
+        flex: 1;
+      }
+    }
+
+    .error {
+      color: #dc2626;
+      font-weight: 500;
+      margin-top: -0.5rem;
+    }
+
+    .invalid {
+      border: 1px solid #dc2626;
+      border-radius: 6px;
+    }
+  }
+}

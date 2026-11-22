@@ -1,0 +1,26 @@
+.filter-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filter-card {
+  background: #f4f7fa;
+  padding: 1rem 1.5rem;
+  border-radius: 7px;
+  box-shadow: 0 2px 12px rgba(20, 80, 145, 0.04);
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+}
+
+.trash {
+  background: transparent;
+  color: #d10063;
+  border: none;
+}

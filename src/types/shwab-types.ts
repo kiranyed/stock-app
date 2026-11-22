@@ -1,0 +1,164 @@
+type Quote = {
+  "52WeekHigh": number;
+  "52WeekLow": number;
+  askMICId: string;
+  askPrice: number;
+  askSize: number;
+  askTime: number;
+  bidMICId: string;
+  bidPrice: number;
+  bidSize: number;
+  bidTime: number;
+  closePrice: number;
+  highPrice: number;
+  lastMICId: string;
+  lastPrice: number;
+  lastSize: number;
+  lowPrice: number;
+  mark: number;
+  markChange: number;
+  markPercentChange: number;
+  netChange: number;
+  netPercentChange: number;
+  openPrice: number;
+  postMarketChange: number;
+  postMarketPercentChange: number;
+  quoteTime: number;
+  securityStatus: string;
+  totalVolume: number;
+  tradeTime: number;
+};
+
+type Reference = {
+  cusip: string;
+  description: string;
+  exchange: string;
+  exchangeName: string;
+  isHardToBorrow: boolean;
+  isShortable: boolean;
+  htbQuantity: number;
+  htbRate: number;
+};
+
+type StockData = {
+  assetMainType: string;
+  assetSubType: string;
+  quoteType: string;
+  realtime: boolean;
+  ssid: number;
+  symbol: string;
+  quote: Quote;
+  reference: Reference;
+};
+
+export type StockMarketData = Record<string, StockData>;
+
+type OptionDeliverable = {
+  symbol: string;
+  assetType: string;
+  deliverableUnits: number;
+};
+
+type OptionContract = {
+  putCall: "CALL" | "PUT";
+  symbol: string;
+  description: string;
+  exchangeName: string;
+  bid: number;
+  ask: number;
+  last: number;
+  mark: number;
+  bidSize: number;
+  askSize: number;
+  bidAskSize: string;
+  lastSize: number;
+  highPrice: number;
+  lowPrice: number;
+  openPrice: number;
+  closePrice: number;
+  totalVolume: number;
+  tradeTimeInLong: number;
+  quoteTimeInLong: number;
+  netChange: number;
+  volatility: number;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  rho: number;
+  openInterest: number;
+  timeValue: number;
+  theoreticalOptionValue: number;
+  theoreticalVolatility: number;
+  optionDeliverablesList: OptionDeliverable[];
+  strikePrice: number;
+  expirationDate: string;
+  daysToExpiration: number;
+  expirationType: string;
+  lastTradingDay: number;
+  multiplier: number;
+  settlementType: string;
+  deliverableNote: string;
+  percentChange: number;
+  markChange: number;
+  markPercentChange: number;
+  intrinsicValue: number;
+  extrinsicValue: number;
+  optionRoot: string;
+  exerciseType: string;
+  high52Week: number;
+  low52Week: number;
+  pennyPilot: boolean;
+  inTheMoney: boolean;
+  mini: boolean;
+  nonStandard: boolean;
+};
+
+type ExpirationMap = Record<string, Record<string, OptionContract[]>>;
+
+type UnderlyingStock = {
+  symbol: string;
+  description: string;
+  change: number;
+  percentChange: number;
+  close: number;
+  quoteTime: number;
+  tradeTime: number;
+  bid: number;
+  ask: number;
+  last: number;
+  mark: number;
+  markChange: number;
+  markPercentChange: number;
+  bidSize: number;
+  askSize: number;
+  highPrice: number;
+  lowPrice: number;
+  openPrice: number;
+  totalVolume: number;
+  exchangeName: string;
+  fiftyTwoWeekHigh: number;
+  fiftyTwoWeekLow: number;
+  delayed: boolean;
+};
+
+export type StockOptionData = {
+  symbol: string;
+  status: string;
+  underlying: UnderlyingStock;
+  strategy: string;
+  interval: number;
+  isDelayed: boolean;
+  isIndex: boolean;
+  interestRate: number;
+  underlyingPrice: number;
+  volatility: number;
+  daysToExpiration: number;
+  dividendYield: number;
+  numberOfContracts: number;
+  assetMainType: string;
+  assetSubType: string;
+  isChainTruncated: boolean;
+  callExpDateMap: ExpirationMap;
+  putExpDateMap: ExpirationMap;
+};

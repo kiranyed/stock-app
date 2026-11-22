@@ -1,0 +1,26 @@
+-- Backtest results table for storing aggregated metrics per backtest run
+CREATE TABLE backtest_result (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  strategy_id INT NOT NULL,
+  group_id INT NOT NULL,
+  strategy_name VARCHAR(100),
+  group_name VARCHAR(100),
+  start_time BIGINT NOT NULL,
+  end_time BIGINT NOT NULL,
+  period INT,
+  direction VARCHAR(12),
+  params JSON,
+  return_pct DECIMAL(9,4),
+  win_rate DECIMAL(5,2),
+  trades INT,
+  sharpe DECIMAL(9,4),
+  max_drawdown DECIMAL(9,4),
+  data_source VARCHAR(20),
+  status VARCHAR(20),
+  runtime_ms BIGINT,
+  created_at BIGINT NOT NULL,
+  KEY strategy_id (strategy_id),
+  KEY group_id (group_id),
+  FOREIGN KEY (strategy_id) REFERENCES strategy (id),
+  FOREIGN KEY (group_id) REFERENCES stock_group (id)
+);

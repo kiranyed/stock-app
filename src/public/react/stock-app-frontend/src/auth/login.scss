@@ -1,0 +1,77 @@
+.login-wrapper {
+  padding: 20px;
+  margin-left: 20px; // Adds margin to the left of the wrapper
+  margin-right: 20px; // Optional: adds margin to the right for balance
+  max-width: 400px;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; // Adds space between form elements
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 14px;
+
+      input {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        margin-left: 10px; // Adds left padding to the input fields
+      }
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+
+      &.login-button {
+        background-color: #007bff;
+        color: white;
+        margin-left: 10px; // Adds left margin to the submit button
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+
+      &.register-button {
+        background-color: #28a745;
+        color: white;
+        margin-left: 10px; // Adds left margin to the submit button
+        &:hover {
+          background-color: #218838;
+        }
+      }
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-left: 10px; // Adds left margin to error message
+    }
+  }
+
+  h2 {
+    margin-top: 30px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+}

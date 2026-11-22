@@ -1,0 +1,2 @@
+ALTER TABLE positions
+  MODIFY COLUMN symbol VARCHAR(32) NOT NULL;

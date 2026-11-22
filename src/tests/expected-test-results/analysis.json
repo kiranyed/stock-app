@@ -1,0 +1,805 @@
+[
+  {
+    "time": 1709845140000,
+    "symbol": "NVDA",
+    "price": 92.669,
+    "percentchange4": 12.63
+  },
+  {
+    "time": 1710964740000,
+    "symbol": "TSLA",
+    "price": 175.66,
+    "percentchange4": 8.1,
+    "percentchange-5": -1.72
+  },
+  {
+    "time": 1712347140000,
+    "symbol": "META",
+    "price": 527.34,
+    "percentchange4": 7.32,
+    "percentchange-5": -1.42
+  },
+  {
+    "time": 1713988740000,
+    "symbol": "TSLA",
+    "price": 162.13,
+    "percentchange4": 8.14,
+    "percentchange-5": 19.69
+  },
+  {
+    "time": 1714075140000,
+    "symbol": "NVDA",
+    "price": 82.632,
+    "percentchange4": 8.44,
+    "percentchange-5": 4.56
+  },
+  {
+    "time": 1714075140000,
+    "symbol": "TSLA",
+    "price": 170.18,
+    "percentchange4": 15.73,
+    "percentchange-5": 7.7
+  },
+  {
+    "time": 1714161540000,
+    "symbol": "GOOGL",
+    "price": 171.95,
+    "percentchange4": 10.03,
+    "percentchange-5": -4.7
+  },
+  {
+    "time": 1714161540000,
+    "symbol": "NVDA",
+    "price": 87.735,
+    "percentchange4": 10.33,
+    "percentchange-5": -5.35
+  },
+  {
+    "time": 1714161540000,
+    "symbol": "TSLA",
+    "price": 168.29,
+    "percentchange4": 18.47,
+    "percentchange-5": 6.95
+  },
+  {
+    "time": 1714420740000,
+    "symbol": "TSLA",
+    "price": 194.05,
+    "percentchange4": 34.12
+  },
+  {
+    "time": 1714507140000,
+    "symbol": "NVDA",
+    "price": 86.402,
+    "percentchange4": 8.44
+  },
+  {
+    "time": 1714507140000,
+    "symbol": "TSLA",
+    "price": 183.28,
+    "percentchange4": 13.05
+  },
+  {
+    "time": 1715025540000,
+    "symbol": "AMZN",
+    "price": 188.7,
+    "percentchange4": 7.83
+  },
+  {
+    "time": 1715025540000,
+    "symbol": "META",
+    "price": 465.68,
+    "percentchange4": 8.25
+  },
+  {
+    "time": 1715111940000,
+    "symbol": "AAPL",
+    "price": 182.4,
+    "percentchange4": 7.74
+  },
+  {
+    "time": 1715111940000,
+    "symbol": "NVDA",
+    "price": 90.554,
+    "percentchange4": 9.05
+  },
+  {
+    "time": 1715198340000,
+    "symbol": "META",
+    "price": 472.6,
+    "percentchange4": 7,
+    "percentchange-5": -0.97
+  },
+  {
+    "time": 1716321540000,
+    "symbol": "TSLA",
+    "price": 186.6,
+    "percentchange4": 7.25
+  },
+  {
+    "time": 1716494340000,
+    "symbol": "NVDA",
+    "price": 103.799,
+    "percentchange4": 12.24,
+    "percentchange-5": 9.73
+  },
+  {
+    "time": 1716580740000,
+    "symbol": "NVDA",
+    "price": 106.469,
+    "percentchange4": 12.33,
+    "percentchange-5": 7.85
+  },
+  {
+    "time": 1716926340000,
+    "symbol": "NVDA",
+    "price": 113.901,
+    "percentchange4": 19.41
+  },
+  {
+    "time": 1717012740000,
+    "symbol": "NVDA",
+    "price": 114.825,
+    "percentchange4": 20.93,
+    "percentchange-5": 0.15
+  },
+  {
+    "time": 1717617540000,
+    "symbol": "NVDA",
+    "price": 122.44,
+    "percentchange4": 10.81,
+    "percentchange-5": -0.53
+  },
+  {
+    "time": 1717703940000,
+    "symbol": "NVDA",
+    "price": 120.998,
+    "percentchange4": 10.37,
+    "percentchange-5": -0.07
+  },
+  {
+    "time": 1718222340000,
+    "symbol": "AAPL",
+    "price": 213.07,
+    "percentchange4": 9.56,
+    "percentchange-5": 1.69
+  },
+  {
+    "time": 1718308740000,
+    "symbol": "AAPL",
+    "price": 214.24,
+    "percentchange4": 8.81,
+    "percentchange-5": 0.02
+  },
+  {
+    "time": 1718308740000,
+    "symbol": "NVDA",
+    "price": 129.61,
+    "percentchange4": 7.21,
+    "percentchange-5": 4.61
+  },
+  {
+    "time": 1718395140000,
+    "symbol": "AAPL",
+    "price": 212.49,
+    "percentchange4": 10.03
+  },
+  {
+    "time": 1718395140000,
+    "symbol": "NVDA",
+    "price": 131.88,
+    "percentchange4": 8.28
+  },
+  {
+    "time": 1718654340000,
+    "symbol": "NVDA",
+    "price": 130.98,
+    "percentchange4": 8.33
+  },
+  {
+    "time": 1718654340000,
+    "symbol": "TSLA",
+    "price": 187.44,
+    "percentchange4": 9.83
+  },
+  {
+    "time": 1718740740000,
+    "symbol": "NVDA",
+    "price": 135.58,
+    "percentchange4": 8.29
+  },
+  {
+    "time": 1719431940000,
+    "symbol": "TSLA",
+    "price": 196.37,
+    "percentchange4": 8.15,
+    "percentchange-5": 6.87
+  },
+  {
+    "time": 1719518340000,
+    "symbol": "TSLA",
+    "price": 197.42,
+    "percentchange4": 7.87,
+    "percentchange-5": 17.14
+  },
+  {
+    "time": 1719604740000,
+    "symbol": "TSLA",
+    "price": 197.88,
+    "percentchange4": 8.38,
+    "percentchange-5": 24.51
+  },
+  {
+    "time": 1719863940000,
+    "symbol": "TSLA",
+    "price": 209.86,
+    "percentchange4": 12.01
+  },
+  {
+    "time": 1719950340000,
+    "symbol": "TSLA",
+    "price": 231.26,
+    "percentchange4": 17.77
+  },
+  {
+    "time": 1720036740000,
+    "symbol": "TSLA",
+    "price": 246.39,
+    "percentchange4": 24.8,
+    "percentchange-5": 2.66
+  },
+  {
+    "time": 1720209540000,
+    "symbol": "AAPL",
+    "price": 226.34,
+    "percentchange4": 7.46,
+    "percentchange-5": 2.93
+  },
+  {
+    "time": 1720209540000,
+    "symbol": "META",
+    "price": 539.91,
+    "percentchange4": 7.08,
+    "percentchange-5": -0.97
+  },
+  {
+    "time": 1720209540000,
+    "symbol": "TSLA",
+    "price": 251.52,
+    "percentchange4": 27.11,
+    "percentchange-5": 4.67
+  },
+  {
+    "time": 1720468740000,
+    "symbol": "TSLA",
+    "price": 252.94,
+    "percentchange4": 20.53
+  },
+  {
+    "time": 1720555140000,
+    "symbol": "NVDA",
+    "price": 131.38,
+    "percentchange4": 7.1
+  },
+  {
+    "time": 1720555140000,
+    "symbol": "TSLA",
+    "price": 262.33,
+    "percentchange4": 13.44
+  },
+  {
+    "time": 1723233540000,
+    "symbol": "META",
+    "price": 517.77,
+    "percentchange4": 8.84,
+    "percentchange-5": 1.74
+  },
+  {
+    "time": 1723579140000,
+    "symbol": "META",
+    "price": 528.54,
+    "percentchange4": 8.1
+  },
+  {
+    "time": 1723579140000,
+    "symbol": "NVDA",
+    "price": 116.14,
+    "percentchange4": 17.42
+  },
+  {
+    "time": 1723579140000,
+    "symbol": "TSLA",
+    "price": 207.83,
+    "percentchange4": 8.38
+  },
+  {
+    "time": 1723665540000,
+    "symbol": "NVDA",
+    "price": 118.08,
+    "percentchange4": 12.49,
+    "percentchange-5": 10.09
+  },
+  {
+    "time": 1723751940000,
+    "symbol": "NVDA",
+    "price": 122.86,
+    "percentchange4": 17.29,
+    "percentchange-5": 3.57
+  },
+  {
+    "time": 1723751940000,
+    "symbol": "TSLA",
+    "price": 214.14,
+    "percentchange4": 7.07,
+    "percentchange-5": 3.25
+  },
+  {
+    "time": 1723838340000,
+    "symbol": "NVDA",
+    "price": 124.58,
+    "percentchange4": 14.27,
+    "percentchange-5": 3.15
+  },
+  {
+    "time": 1723838340000,
+    "symbol": "TSLA",
+    "price": 216.12,
+    "percentchange4": 9.43,
+    "percentchange-5": 3.31
+  },
+  {
+    "time": 1724097540000,
+    "symbol": "NVDA",
+    "price": 130,
+    "percentchange4": 11.93
+  },
+  {
+    "time": 1724097540000,
+    "symbol": "TSLA",
+    "price": 222.72,
+    "percentchange4": 7.16
+  },
+  {
+    "time": 1724183940000,
+    "symbol": "NVDA",
+    "price": 127.25,
+    "percentchange4": 7.77
+  },
+  {
+    "time": 1724183940000,
+    "symbol": "TSLA",
+    "price": 221.1,
+    "percentchange4": 9.79
+  },
+  {
+    "time": 1725566340000,
+    "symbol": "TSLA",
+    "price": 230.17,
+    "percentchange4": 11.58,
+    "percentchange-5": -1.74
+  },
+  {
+    "time": 1726084740000,
+    "symbol": "NVDA",
+    "price": 116.91,
+    "percentchange4": 9.05,
+    "percentchange-5": -0.11
+  },
+  {
+    "time": 1726171140000,
+    "symbol": "AMZN",
+    "price": 187,
+    "percentchange4": 9.11,
+    "percentchange-5": -0.06
+  },
+  {
+    "time": 1726171140000,
+    "symbol": "NVDA",
+    "price": 119.14,
+    "percentchange4": 15.86,
+    "percentchange-5": -2.98
+  },
+  {
+    "time": 1726171140000,
+    "symbol": "TSLA",
+    "price": 229.81,
+    "percentchange4": 9.05,
+    "percentchange-5": -0.84
+  },
+  {
+    "time": 1726257540000,
+    "symbol": "NVDA",
+    "price": 119.1,
+    "percentchange4": 11.86,
+    "percentchange-5": -4.81
+  },
+  {
+    "time": 1726516740000,
+    "symbol": "NVDA",
+    "price": 116.78,
+    "percentchange4": 8.03
+  },
+  {
+    "time": 1727121540000,
+    "symbol": "TSLA",
+    "price": 250,
+    "percentchange4": 9.71
+  },
+  {
+    "time": 1727207940000,
+    "symbol": "TSLA",
+    "price": 254.27,
+    "percentchange4": 11.91
+  },
+  {
+    "time": 1728331140000,
+    "symbol": "NVDA",
+    "price": 127.72,
+    "percentchange4": 9.16
+  },
+  {
+    "time": 1728417540000,
+    "symbol": "NVDA",
+    "price": 132.89,
+    "percentchange4": 11.81
+  },
+  {
+    "time": 1728503940000,
+    "symbol": "NVDA",
+    "price": 132.65,
+    "percentchange4": 7.98,
+    "percentchange-5": 4.09
+  },
+  {
+    "time": 1728590340000,
+    "symbol": "NVDA",
+    "price": 134.81,
+    "percentchange4": 7.92,
+    "percentchange-5": -2.38
+  },
+  {
+    "time": 1729540740000,
+    "symbol": "NVDA",
+    "price": 143.71,
+    "percentchange4": 9.2
+  },
+  {
+    "time": 1729799940000,
+    "symbol": "TSLA",
+    "price": 260.48,
+    "percentchange4": 18.02,
+    "percentchange-5": -0.37
+  },
+  {
+    "time": 1729886340000,
+    "symbol": "TSLA",
+    "price": 269.19,
+    "percentchange4": 23,
+    "percentchange-5": -4.32
+  },
+  {
+    "time": 1730145540000,
+    "symbol": "TSLA",
+    "price": 262.51,
+    "percentchange4": 20.43
+  },
+  {
+    "time": 1730231940000,
+    "symbol": "TSLA",
+    "price": 259.52,
+    "percentchange4": 21.47
+  },
+  {
+    "time": 1730318340000,
+    "symbol": "GOOGL",
+    "price": 174.46,
+    "percentchange4": 7.21
+  },
+  {
+    "time": 1730926740000,
+    "symbol": "AMZN",
+    "price": 207.09,
+    "percentchange4": 11.1,
+    "percentchange-5": -0.12
+  },
+  {
+    "time": 1730926740000,
+    "symbol": "NVDA",
+    "price": 145.61,
+    "percentchange4": 9.68,
+    "percentchange-5": -0.24
+  },
+  {
+    "time": 1730926740000,
+    "symbol": "TSLA",
+    "price": 288.53,
+    "percentchange4": 15.48,
+    "percentchange-5": 21.3
+  },
+  {
+    "time": 1731013140000,
+    "symbol": "NVDA",
+    "price": 148.88,
+    "percentchange4": 9.96,
+    "percentchange-5": -0.4
+  },
+  {
+    "time": 1731013140000,
+    "symbol": "TSLA",
+    "price": 296.91,
+    "percentchange4": 19.25,
+    "percentchange-5": 10.64
+  },
+  {
+    "time": 1731099540000,
+    "symbol": "NVDA",
+    "price": 147.63,
+    "percentchange4": 8.51,
+    "percentchange-5": -0.92
+  },
+  {
+    "time": 1731099540000,
+    "symbol": "TSLA",
+    "price": 321.22,
+    "percentchange4": 32.28,
+    "percentchange-5": 2.81
+  },
+  {
+    "time": 1731358740000,
+    "symbol": "TSLA",
+    "price": 350,
+    "percentchange4": 39.2
+  },
+  {
+    "time": 1731445140000,
+    "symbol": "TSLA",
+    "price": 328.49,
+    "percentchange4": 13.85
+  },
+  {
+    "time": 1731531540000,
+    "symbol": "TSLA",
+    "price": 330.24,
+    "percentchange4": 11.23,
+    "percentchange-5": 2.57
+  },
+  {
+    "time": 1732136340000,
+    "symbol": "TSLA",
+    "price": 342.03,
+    "percentchange4": 9.91,
+    "percentchange-5": -1.01
+  },
+  {
+    "time": 1733345940000,
+    "symbol": "META",
+    "price": 613.78,
+    "percentchange4": 7.83,
+    "percentchange-5": -0.03
+  },
+  {
+    "time": 1733345940000,
+    "symbol": "NVDA",
+    "price": 145.14,
+    "percentchange4": 7.24,
+    "percentchange-5": -4.36
+  },
+  {
+    "time": 1733345940000,
+    "symbol": "TSLA",
+    "price": 357.93,
+    "percentchange4": 7.52,
+    "percentchange-5": 8.9
+  },
+  {
+    "time": 1733432340000,
+    "symbol": "TSLA",
+    "price": 369.49,
+    "percentchange4": 7.05,
+    "percentchange-5": 8.53
+  },
+  {
+    "time": 1733518740000,
+    "symbol": "AMZN",
+    "price": 227.03,
+    "percentchange4": 7.75,
+    "percentchange-5": 1.42
+  },
+  {
+    "time": 1733518740000,
+    "symbol": "TSLA",
+    "price": 389.22,
+    "percentchange4": 9,
+    "percentchange-5": 9.13
+  },
+  {
+    "time": 1733777940000,
+    "symbol": "TSLA",
+    "price": 389.79,
+    "percentchange4": 10.92
+  },
+  {
+    "time": 1733864340000,
+    "symbol": "TSLA",
+    "price": 400.99,
+    "percentchange4": 12.03
+  },
+  {
+    "time": 1733950740000,
+    "symbol": "GOOGL",
+    "price": 195.4,
+    "percentchange4": 13.18,
+    "percentchange-5": 0.64
+  },
+  {
+    "time": 1733950740000,
+    "symbol": "TSLA",
+    "price": 424.77,
+    "percentchange4": 14.96,
+    "percentchange-5": 9
+  },
+  {
+    "time": 1734037140000,
+    "symbol": "GOOGL",
+    "price": 191.96,
+    "percentchange4": 9.87,
+    "percentchange-5": 1.8
+  },
+  {
+    "time": 1734037140000,
+    "symbol": "TSLA",
+    "price": 418.1,
+    "percentchange4": 7.42,
+    "percentchange-5": 14.77
+  },
+  {
+    "time": 1734123540000,
+    "symbol": "GOOGL",
+    "price": 189.82,
+    "percentchange4": 8.24,
+    "percentchange-5": -0.75
+  },
+  {
+    "time": 1734123540000,
+    "symbol": "TSLA",
+    "price": 436.23,
+    "percentchange4": 11.91,
+    "percentchange-5": 0.89
+  },
+  {
+    "time": 1734382740000,
+    "symbol": "TSLA",
+    "price": 463.02,
+    "percentchange4": 15.47
+  },
+  {
+    "time": 1734469140000,
+    "symbol": "TSLA",
+    "price": 479.86,
+    "percentchange4": 12.97
+  },
+  {
+    "time": 1734987540000,
+    "symbol": "NVDA",
+    "price": 139.67,
+    "percentchange4": 7.12
+  },
+  {
+    "time": 1735073940000,
+    "symbol": "NVDA",
+    "price": 140.22,
+    "percentchange4": 8.77
+  },
+  {
+    "time": 1735246740000,
+    "symbol": "NVDA",
+    "price": 139.93,
+    "percentchange4": 7.08,
+    "percentchange-5": -4.03
+  },
+  {
+    "time": 1736197140000,
+    "symbol": "NVDA",
+    "price": 149.43,
+    "percentchange4": 8.68
+  },
+  {
+    "time": 1736974740000,
+    "symbol": "TSLA",
+    "price": 428.22,
+    "percentchange4": 8.43
+  },
+  {
+    "time": 1737579540000,
+    "symbol": "NVDA",
+    "price": 147.07,
+    "percentchange4": 7.95,
+    "percentchange-5": -19.48
+  },
+  {
+    "time": 1737665940000,
+    "symbol": "NVDA",
+    "price": 147.22,
+    "percentchange4": 10.22,
+    "percentchange-5": -12.38
+  },
+  {
+    "time": 1738011540000,
+    "symbol": "META",
+    "price": 659.88,
+    "percentchange4": 7.04
+  },
+  {
+    "time": 1738097940000,
+    "symbol": "META",
+    "price": 674.33,
+    "percentchange4": 8.15
+  },
+  {
+    "time": 1738184340000,
+    "symbol": "AAPL",
+    "price": 239.36,
+    "percentchange4": 7.02,
+    "percentchange-5": -4.74
+  },
+  {
+    "time": 1738875540000,
+    "symbol": "NVDA",
+    "price": 128.68,
+    "percentchange4": 7.17,
+    "percentchange-5": 3.2
+  },
+  {
+    "time": 1738961940000,
+    "symbol": "NVDA",
+    "price": 129.84,
+    "percentchange4": 11.3,
+    "percentchange-5": 1
+  },
+  {
+    "time": 1739221140000,
+    "symbol": "NVDA",
+    "price": 133.57,
+    "percentchange4": 12.57
+  },
+  {
+    "time": 1739566740000,
+    "symbol": "AAPL",
+    "price": 244.6,
+    "percentchange4": 7.45,
+    "percentchange-5": 0.11
+  },
+  {
+    "time": 1739912340000,
+    "symbol": "TSLA",
+    "price": 354.11,
+    "percentchange4": 7.8
+  },
+  {
+    "time": 1739998740000,
+    "symbol": "TSLA",
+    "price": 360.56,
+    "percentchange4": 7.15,
+    "percentchange-5": -8.33
+  },
+  {
+    "time": 1741982340000,
+    "symbol": "NVDA",
+    "price": 121.67,
+    "percentchange4": 13.73,
+    "percentchange-5": -3.41
+  },
+  {
+    "time": 1741982340000,
+    "symbol": "TSLA",
+    "price": 249.98,
+    "percentchange4": 12.53,
+    "percentchange-5": -5.65
+  },
+  {
+    "time": 1742241540000,
+    "symbol": "NVDA",
+    "price": 119.53,
+    "percentchange4": 9.9
+  }
+]

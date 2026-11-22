@@ -1,0 +1,51 @@
+.strategy-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-weight: 600;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+
+      .required {
+        color: #d32f2f;
+        font-weight: bold;
+      }
+    }
+
+    input,
+    .p-dropdown {
+      width: 100%;
+    }
+  }
+
+  .screeners-section {
+    margin-top: 1rem;
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .add-screener-btn {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .error-msg {
+    color: #d32f2f;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+}

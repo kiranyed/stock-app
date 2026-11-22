@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="1" author="yourname">
+        <sqlFile
+            path="create-initial-tables.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="backtest-results" author="copilot">
+        <sqlFile
+            path="backtest-results.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="seed-required-stock-groups" author="copilot">
+        <sqlFile
+            path="seed-required-stock-groups.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="create-positions-table" author="copilot">
+        <sqlFile
+            path="positions.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="alter-positions-symbol-length" author="copilot">
+        <sqlFile
+            path="alter-positions-symbol-length.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+</databaseChangeLog>

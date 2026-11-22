@@ -1,0 +1,15 @@
+.vscode
+node_modules
+.env
+build
+db/*.jar
+util/csv-results/*
+util/candle-data/*
+util/backtest-smoke.ts
+util/backtest-sweep.ts
+outputFolder/*
+db/exports/
+.copilot-ignore
+.github/copilot-instructions.md
+.DS_Store
+.claude/settings.local.json

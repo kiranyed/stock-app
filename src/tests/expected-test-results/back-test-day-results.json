@@ -1,0 +1,235 @@
+[
+  {
+    "gains": [
+      {
+        "symbol": "NVDA",
+        "gainPercent": -7.44,
+        "timeFormatted": "3/11/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "3/7/2024 3:59:00 PM",
+        "enteredTime": 1709845140000,
+        "time": 1710187140000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -8.71,
+        "timeFormatted": "4/15/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "4/9/2024 3:59:00 PM",
+        "enteredTime": 1712692740000,
+        "time": 1713211140000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -5.33,
+        "timeFormatted": "4/30/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "4/26/2024 3:59:00 PM",
+        "enteredTime": 1714161540000,
+        "time": 1714507140000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.75,
+        "timeFormatted": "5/1/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "4/23/2024 3:59:00 PM",
+        "enteredTime": 1713902340000,
+        "time": 1714593540000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 11.02,
+        "timeFormatted": "5/1/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "4/24/2024 3:59:00 PM",
+        "enteredTime": 1713988740000,
+        "time": 1714593540000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 37.37,
+        "timeFormatted": "6/21/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "5/6/2024 3:59:00 PM",
+        "enteredTime": 1715025540000,
+        "time": 1718999940000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 22.74,
+        "timeFormatted": "7/11/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2024 3:59:00 PM",
+        "enteredTime": 1719431940000,
+        "time": 1720727940000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -6.65,
+        "timeFormatted": "7/17/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2024 3:59:00 PM",
+        "enteredTime": 1719431940000,
+        "time": 1721246340000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 13.01,
+        "timeFormatted": "8/6/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "5/3/2024 3:59:00 PM",
+        "enteredTime": 1714766340000,
+        "time": 1722974340000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -3.2,
+        "timeFormatted": "8/27/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/16/2024 3:59:00 PM",
+        "enteredTime": 1723838340000,
+        "time": 1724788740000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 1.25,
+        "timeFormatted": "8/29/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/13/2024 3:59:00 PM",
+        "enteredTime": 1723579140000,
+        "time": 1724961540000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -6.04,
+        "timeFormatted": "9/9/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/5/2024 3:59:00 PM",
+        "enteredTime": 1725566340000,
+        "time": 1725911940000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 6.41,
+        "timeFormatted": "10/3/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/10/2024 3:59:00 PM",
+        "enteredTime": 1725998340000,
+        "time": 1727985540000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 13.56,
+        "timeFormatted": "10/31/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/11/2024 3:59:00 PM",
+        "enteredTime": 1726084740000,
+        "time": 1730404740000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 26.78,
+        "timeFormatted": "11/13/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/24/2024 3:59:00 PM",
+        "enteredTime": 1729799940000,
+        "time": 1731531540000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -6.59,
+        "timeFormatted": "11/25/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "11/6/2024 3:59:00 PM",
+        "enteredTime": 1730926740000,
+        "time": 1732568340000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 28.76,
+        "timeFormatted": "12/19/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "11/18/2024 3:59:00 PM",
+        "enteredTime": 1731963540000,
+        "time": 1734641940000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -6.62,
+        "timeFormatted": "12/27/2024 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "12/24/2024 3:59:00 PM",
+        "enteredTime": 1735073940000,
+        "time": 1735333140000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -3.02,
+        "timeFormatted": "1/8/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "1/3/2025 3:59:00 PM",
+        "enteredTime": 1735937940000,
+        "time": 1736369940000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -1.94,
+        "timeFormatted": "2/6/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "12/11/2024 3:59:00 PM",
+        "enteredTime": 1733950740000,
+        "time": 1738875540000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -14.67,
+        "timeFormatted": "2/10/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "1/6/2025 3:59:00 PM",
+        "enteredTime": 1736197140000,
+        "time": 1739221140000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -5.1,
+        "timeFormatted": "2/21/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "2/13/2025 3:59:00 PM",
+        "enteredTime": 1739480340000,
+        "time": 1740171540000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 4.37,
+        "timeFormatted": "2/24/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "2/5/2025 3:59:00 PM",
+        "enteredTime": 1738789140000,
+        "time": 1740430740000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.27,
+        "timeFormatted": "3/18/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "3/12/2025 3:59:00 PM",
+        "enteredTime": 1741809540000,
+        "time": 1742327940000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -9.18,
+        "timeFormatted": "3/18/2025 3:59:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "3/12/2025 3:59:00 PM",
+        "enteredTime": 1741809540000,
+        "time": 1742327940000
+      }
+    ],
+    "total": 0.8124053477141697,
+    "tradeNum": 25,
+    "avgTrade": 0.03249621390856679,
+    "name": "testStrat1"
+  }
+]

@@ -1,0 +1,6 @@
+{
+    "watch": ["src"],
+    "ext": "ts",
+    "ignore": ["src/public"],
+    "exec": "eslint 'src/**/*.ts' && ts-node src/startup/start.ts dev"
+  }

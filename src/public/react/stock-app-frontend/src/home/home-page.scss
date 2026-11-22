@@ -1,0 +1,83 @@
+.editing-group {
+  .filter {
+    margin-bottom: 10px;
+  }
+  &.none-selected {
+    .filter-parent > .filter-parentheses:hover {
+      ~ .filter {
+        background-color: lightblue;
+      }
+    }
+    .filter:hover {
+      background-color: lightblue;
+    }
+  }
+  .filter-parent.edit-group .filter {
+  }
+  // .p-dialog-content {
+  .selected {
+    background-color: blue;
+  }
+  // .parent-filter > .selected {
+  //     & ~ .filter {
+
+  //     }
+  // }
+  // }
+}
+
+.trading-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  background: #f8fafc;
+}
+
+.trading-tabs {
+  flex: 1;
+  overflow: auto;
+}
+
+.trade-card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f8f9fa;
+}
+
+.p-togglebutton.p-button {
+  width: 100px;
+}
+
+.selected-bar {
+  z-index: 1000;
+  border-top: 1px solid #dee2e6;
+  animation: slideUp 0.3s ease-out;
+  padding: 1.5rem 2rem !important;
+  background: linear-gradient(to top, #ffffff, #f8fafc);
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.p-tabview .p-tabview-panels {
+  padding: 2rem !important;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.p-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
+}
