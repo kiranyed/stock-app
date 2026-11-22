@@ -13,3 +13,4 @@ db/exports/
 .github/copilot-instructions.md
 .DS_Store
 .claude/settings.local.json
+src/public/react/stock-app-frontend/dist/
