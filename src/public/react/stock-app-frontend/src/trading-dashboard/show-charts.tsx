@@ -1242,59 +1242,6 @@ export class ShowCharts extends React.Component<IProps, IState> {
     return chartData;
   };
 
-  callDayTrade = (): Promise<string> => {
-    return fetch(
-      "/trade/day-trade?stopGain=1.03&stopLoss=0.97&stabilityTime=10&min=1",
-    )
-      .then((res) => res.json())
-      .catch((err) => {
-        console.log(err);
-        return err;
-      });
-  };
-
-  callEarningTrade = (): Promise<string> => {
-    return fetch("/trade/earnings-strategy")
-      .then((res) => res.json())
-      .then((obj) => {
-        this.createChartStockData(obj);
-      })
-      .catch((err) => {
-        console.log(err);
-        return err;
-      });
-  };
-
-  callEarnings = () => {
-    const startTime = new Date("November 18, 2019 09:30").getTime();
-    const stopLoss = 0.98;
-    const stopGain = 1.02;
-    return fetch(
-      "/trade/earnings-strategy?startTime=" +
-        startTime +
-        "&stopLoss=" +
-        stopLoss +
-        "&stopGain=" +
-        stopGain,
-    )
-      .then((res) => res.json())
-      .then((obj) => {
-        this.createChartStockData(obj);
-      })
-      .catch((err) => {
-        console.log(err);
-        return err;
-      });
-  };
-
-  test = () => {
-    const gains = this.callEarningTrade();
-    gains.then((res) => {
-      console.log(res);
-    });
-    // this.createChart(gains);
-  };
-
   createChartWithGains = (gains: IGain[]) => {
     const labels = new Array<number>();
     const lastLabel = gains[0].time;
@@ -1466,24 +1413,6 @@ export class ShowCharts extends React.Component<IProps, IState> {
     if (event.value) {
       this.setState({ toDate: event.value });
     }
-  };
-
-  getPostEarningsGains = () => {
-    const earningsTime = new Date(this.state.fromDate).getTime();
-    return fetch(
-      "/trade/post-earnings?symbols=" +
-        this.state.input +
-        "&earningsTime=" +
-        earningsTime,
-    )
-      .then((res) => res.json())
-      .then((obj) => {
-        this.createChartStockData(obj);
-      })
-      .catch((err) => {
-        console.log(err);
-        return err;
-      });
   };
 
   showSandP = async () => {
