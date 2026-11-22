@@ -4,7 +4,7 @@
   "description": "Trade stocks",
   "main": "src/start.js",
   "scripts": {
-    "start": "npm install --only=prod && NODE_ENV=production node ./build/start.js",
+    "start": "npm install --only=prod && NODE_ENV=production node ./build/startup/start.js",
     "start-dev": "nodemon --config \"./util/nodemon.json\"/",
     "set-access-token": "node ./util/set-access-token.mjs",
     "test": "jest",

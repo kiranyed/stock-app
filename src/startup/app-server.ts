@@ -36,7 +36,7 @@ class AppServer {
   }
 
   private serveFrontEndProd(): void {
-    const dir = path.join(__dirname, "public/react/test-prod/");
+    const dir = path.join(__dirname, "../public/react/test-prod/");
     this.app.set("views", dir);
     this.app.use(express.static(dir));
 
