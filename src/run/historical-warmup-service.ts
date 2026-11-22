@@ -34,7 +34,7 @@ export class HistoricalWarmupService {
     const calendarDays = Math.ceil((maxSpace * 7) / 5) + 5;
     const warmupEndTime = this.getWarmupEndTime(endTime);
     const startTime = warmupEndTime - calendarDays * CONSTANTS.MILLIS_IN_DAY;
-    const helper = new BackTestHelper(false);
+    const helper = new BackTestHelper();
     const symbols = this.collectSymbols(slice, periods);
     const config: ITestConfig = {
       startTime,

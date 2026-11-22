@@ -196,15 +196,14 @@ describe("Integration - Back Tests", () => {
   }, 120000);
 
   it("runs back test (30m)", async () => {
-    const query = `strategyId=${strategyHalfHour.id}&groupId=${group.id}&startTime=1709269200000&endTime=1742700799869`;
-
-    //const query = `strategyId=${strategyHalfHour.id}&groupId=${group.id}&startTime=1709269200000&endTime=1709325000000`;
+    // Schwab only keeps ~8 months of intraday candles, so this range must stay recent
+    const query = `strategyId=${strategyHalfHour.id}&groupId=${group.id}&startTime=1780320600000&endTime=1793390400000`;
 
     const res = await request("/api/run/back-test?" + query, PATCH);
     expect(res.status).toBe(HttpStatusCode.Ok);
 
     const expected = await readExpected(
-      "back-test-half-hour-polygon-results.json",
+      "back-test-half-hour-results.json",
       res.body,
     );
     expect(res.body).toEqual(expected);

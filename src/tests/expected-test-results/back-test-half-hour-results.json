@@ -1,0 +1,2611 @@
+[
+  {
+    "gains": [
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.49,
+        "timeFormatted": "6/1/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/1/2026 1:30:00 PM",
+        "enteredTime": 1780335000000,
+        "time": 1780336800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.91,
+        "timeFormatted": "6/1/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/1/2026 12:30:00 PM",
+        "enteredTime": 1780331400000,
+        "time": 1780342200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.82,
+        "timeFormatted": "6/2/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/2/2026 11:00:00 AM",
+        "enteredTime": 1780412400000,
+        "time": 1780414200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.42,
+        "timeFormatted": "6/2/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/2/2026 11:00:00 AM",
+        "enteredTime": 1780412400000,
+        "time": 1780416000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.6,
+        "timeFormatted": "6/2/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/2/2026 11:00:00 AM",
+        "enteredTime": 1780412400000,
+        "time": 1780428600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.69,
+        "timeFormatted": "6/3/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/3/2026 11:00:00 AM",
+        "enteredTime": 1780498800000,
+        "time": 1780500600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.62,
+        "timeFormatted": "6/3/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/3/2026 11:00:00 AM",
+        "enteredTime": 1780498800000,
+        "time": 1780502400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.24,
+        "timeFormatted": "6/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/3/2026 1:00:00 PM",
+        "enteredTime": 1780506000000,
+        "time": 1780515000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.26,
+        "timeFormatted": "6/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/3/2026 2:30:00 PM",
+        "enteredTime": 1780511400000,
+        "time": 1780515000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 2.24,
+        "timeFormatted": "6/4/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/4/2026 11:00:00 AM",
+        "enteredTime": 1780585200000,
+        "time": 1780601400000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.43,
+        "timeFormatted": "6/8/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/8/2026 11:00:00 AM",
+        "enteredTime": 1780930800000,
+        "time": 1780932600000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.4,
+        "timeFormatted": "6/8/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/8/2026 11:00:00 AM",
+        "enteredTime": 1780930800000,
+        "time": 1780932600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 1.15,
+        "timeFormatted": "6/8/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/8/2026 12:30:00 PM",
+        "enteredTime": 1780936200000,
+        "time": 1780947000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.2,
+        "timeFormatted": "6/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/9/2026 2:00:00 PM",
+        "enteredTime": 1781028000000,
+        "time": 1781033400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0,
+        "timeFormatted": "6/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/9/2026 2:00:00 PM",
+        "enteredTime": 1781028000000,
+        "time": 1781033400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.05,
+        "timeFormatted": "6/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/9/2026 2:00:00 PM",
+        "enteredTime": 1781028000000,
+        "time": 1781033400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 1,
+        "timeFormatted": "6/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/9/2026 1:30:00 PM",
+        "enteredTime": 1781026200000,
+        "time": 1781033400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.78,
+        "timeFormatted": "6/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/9/2026 1:30:00 PM",
+        "enteredTime": 1781026200000,
+        "time": 1781033400000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.68,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 12:00:00 PM",
+        "enteredTime": 1781193600000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.87,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 2:00:00 PM",
+        "enteredTime": 1781200800000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 1.32,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 2:00:00 PM",
+        "enteredTime": 1781200800000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.2,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 2:00:00 PM",
+        "enteredTime": 1781200800000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.73,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 2:00:00 PM",
+        "enteredTime": 1781200800000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 1.57,
+        "timeFormatted": "6/11/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/11/2026 1:30:00 PM",
+        "enteredTime": 1781199000000,
+        "time": 1781206200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.4,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:00:00 AM",
+        "enteredTime": 1781276400000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.56,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:00:00 AM",
+        "enteredTime": 1781276400000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.54,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:00:00 AM",
+        "enteredTime": 1781276400000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.22,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:00:00 AM",
+        "enteredTime": 1781276400000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.76,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:00:00 AM",
+        "enteredTime": 1781276400000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -2.65,
+        "timeFormatted": "6/12/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 11:30:00 AM",
+        "enteredTime": 1781278200000,
+        "time": 1781280000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.52,
+        "timeFormatted": "6/12/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/12/2026 1:00:00 PM",
+        "enteredTime": 1781283600000,
+        "time": 1781289000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.36,
+        "timeFormatted": "6/15/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/15/2026 11:30:00 AM",
+        "enteredTime": 1781537400000,
+        "time": 1781541000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.05,
+        "timeFormatted": "6/15/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/15/2026 11:30:00 AM",
+        "enteredTime": 1781537400000,
+        "time": 1781542800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.32,
+        "timeFormatted": "6/15/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/15/2026 11:30:00 AM",
+        "enteredTime": 1781537400000,
+        "time": 1781546400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.39,
+        "timeFormatted": "6/16/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/16/2026 11:00:00 AM",
+        "enteredTime": 1781622000000,
+        "time": 1781625600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.8,
+        "timeFormatted": "6/17/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/17/2026 12:30:00 PM",
+        "enteredTime": 1781713800000,
+        "time": 1781721000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.68,
+        "timeFormatted": "6/18/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/18/2026 11:30:00 AM",
+        "enteredTime": 1781796600000,
+        "time": 1781805600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.25,
+        "timeFormatted": "6/18/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/18/2026 12:30:00 PM",
+        "enteredTime": 1781800200000,
+        "time": 1781807400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.31,
+        "timeFormatted": "6/18/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/18/2026 11:00:00 AM",
+        "enteredTime": 1781794800000,
+        "time": 1781807400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 1.18,
+        "timeFormatted": "6/18/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/18/2026 11:30:00 AM",
+        "enteredTime": 1781796600000,
+        "time": 1781807400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.49,
+        "timeFormatted": "6/22/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/22/2026 12:00:00 PM",
+        "enteredTime": 1782144000000,
+        "time": 1782154800000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.78,
+        "timeFormatted": "6/22/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/22/2026 12:30:00 PM",
+        "enteredTime": 1782145800000,
+        "time": 1782156600000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.65,
+        "timeFormatted": "6/24/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/24/2026 11:00:00 AM",
+        "enteredTime": 1782313200000,
+        "time": 1782315000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.24,
+        "timeFormatted": "6/24/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/24/2026 11:30:00 AM",
+        "enteredTime": 1782315000000,
+        "time": 1782318600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.05,
+        "timeFormatted": "6/24/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/24/2026 11:00:00 AM",
+        "enteredTime": 1782313200000,
+        "time": 1782318600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.54,
+        "timeFormatted": "6/25/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 11:00:00 AM",
+        "enteredTime": 1782399600000,
+        "time": 1782403200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.3,
+        "timeFormatted": "6/25/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 11:00:00 AM",
+        "enteredTime": 1782399600000,
+        "time": 1782406800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.45,
+        "timeFormatted": "6/25/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 1:30:00 PM",
+        "enteredTime": 1782408600000,
+        "time": 1782410400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.65,
+        "timeFormatted": "6/25/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 2:30:00 PM",
+        "enteredTime": 1782412200000,
+        "time": 1782414000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.62,
+        "timeFormatted": "6/25/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 2:30:00 PM",
+        "enteredTime": 1782412200000,
+        "time": 1782414000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.97,
+        "timeFormatted": "6/25/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/25/2026 3:00:00 PM",
+        "enteredTime": 1782414000000,
+        "time": 1782415800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.3,
+        "timeFormatted": "6/26/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:00:00 AM",
+        "enteredTime": 1782486000000,
+        "time": 1782487800000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.51,
+        "timeFormatted": "6/26/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:00:00 AM",
+        "enteredTime": 1782486000000,
+        "time": 1782491400000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.4,
+        "timeFormatted": "6/26/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:00:00 AM",
+        "enteredTime": 1782486000000,
+        "time": 1782491400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.02,
+        "timeFormatted": "6/26/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:30:00 AM",
+        "enteredTime": 1782487800000,
+        "time": 1782491400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 1.26,
+        "timeFormatted": "6/26/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:00:00 AM",
+        "enteredTime": 1782486000000,
+        "time": 1782491400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.41,
+        "timeFormatted": "6/26/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 11:00:00 AM",
+        "enteredTime": 1782486000000,
+        "time": 1782500400000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.35,
+        "timeFormatted": "6/26/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/26/2026 1:30:00 PM",
+        "enteredTime": 1782495000000,
+        "time": 1782502200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.91,
+        "timeFormatted": "6/29/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/29/2026 11:00:00 AM",
+        "enteredTime": 1782745200000,
+        "time": 1782747000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.31,
+        "timeFormatted": "6/29/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/29/2026 11:00:00 AM",
+        "enteredTime": 1782745200000,
+        "time": 1782747000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.36,
+        "timeFormatted": "6/29/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/29/2026 1:30:00 PM",
+        "enteredTime": 1782754200000,
+        "time": 1782756000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 3.59,
+        "timeFormatted": "6/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/29/2026 11:00:00 AM",
+        "enteredTime": 1782745200000,
+        "time": 1782761400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.36,
+        "timeFormatted": "6/30/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/30/2026 11:00:00 AM",
+        "enteredTime": 1782831600000,
+        "time": 1782840600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.76,
+        "timeFormatted": "6/30/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/30/2026 12:00:00 PM",
+        "enteredTime": 1782835200000,
+        "time": 1782847800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.36,
+        "timeFormatted": "6/30/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "6/30/2026 3:00:00 PM",
+        "enteredTime": 1782846000000,
+        "time": 1782847800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.14,
+        "timeFormatted": "7/1/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 11:00:00 AM",
+        "enteredTime": 1782918000000,
+        "time": 1782921600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.84,
+        "timeFormatted": "7/1/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 11:00:00 AM",
+        "enteredTime": 1782918000000,
+        "time": 1782921600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.81,
+        "timeFormatted": "7/1/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 11:30:00 AM",
+        "enteredTime": 1782919800000,
+        "time": 1782921600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.4,
+        "timeFormatted": "7/1/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 11:00:00 AM",
+        "enteredTime": 1782918000000,
+        "time": 1782932400000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.6,
+        "timeFormatted": "7/1/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 11:30:00 AM",
+        "enteredTime": 1782919800000,
+        "time": 1782934200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.95,
+        "timeFormatted": "7/1/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/1/2026 1:30:00 PM",
+        "enteredTime": 1782927000000,
+        "time": 1782934200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.48,
+        "timeFormatted": "7/2/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 11:00:00 AM",
+        "enteredTime": 1783004400000,
+        "time": 1783006200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.61,
+        "timeFormatted": "7/2/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 11:00:00 AM",
+        "enteredTime": 1783004400000,
+        "time": 1783006200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.27,
+        "timeFormatted": "7/2/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 11:00:00 AM",
+        "enteredTime": 1783004400000,
+        "time": 1783011600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.22,
+        "timeFormatted": "7/2/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 12:30:00 PM",
+        "enteredTime": 1783009800000,
+        "time": 1783020600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.07,
+        "timeFormatted": "7/2/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 12:30:00 PM",
+        "enteredTime": 1783009800000,
+        "time": 1783020600000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.64,
+        "timeFormatted": "7/2/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/2/2026 2:00:00 PM",
+        "enteredTime": 1783015200000,
+        "time": 1783020600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.1,
+        "timeFormatted": "7/6/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/6/2026 11:00:00 AM",
+        "enteredTime": 1783350000000,
+        "time": 1783355400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 2.22,
+        "timeFormatted": "7/6/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/6/2026 11:00:00 AM",
+        "enteredTime": 1783350000000,
+        "time": 1783359000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.03,
+        "timeFormatted": "7/6/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/6/2026 12:00:00 PM",
+        "enteredTime": 1783353600000,
+        "time": 1783366200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 1.63,
+        "timeFormatted": "7/6/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/6/2026 11:00:00 AM",
+        "enteredTime": 1783350000000,
+        "time": 1783366200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 2,
+        "timeFormatted": "7/6/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/6/2026 11:00:00 AM",
+        "enteredTime": 1783350000000,
+        "time": 1783366200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.3,
+        "timeFormatted": "7/7/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/7/2026 11:30:00 AM",
+        "enteredTime": 1783438200000,
+        "time": 1783441800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 1.31,
+        "timeFormatted": "7/7/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/7/2026 12:00:00 PM",
+        "enteredTime": 1783440000000,
+        "time": 1783449000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.41,
+        "timeFormatted": "7/7/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/7/2026 2:30:00 PM",
+        "enteredTime": 1783449000000,
+        "time": 1783450800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.07,
+        "timeFormatted": "7/7/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/7/2026 1:00:00 PM",
+        "enteredTime": 1783443600000,
+        "time": 1783452600000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 1.47,
+        "timeFormatted": "7/8/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/8/2026 12:30:00 PM",
+        "enteredTime": 1783528200000,
+        "time": 1783533600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.22,
+        "timeFormatted": "7/8/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/8/2026 1:00:00 PM",
+        "enteredTime": 1783530000000,
+        "time": 1783539000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.13,
+        "timeFormatted": "7/8/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/8/2026 3:00:00 PM",
+        "enteredTime": 1783537200000,
+        "time": 1783539000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.2,
+        "timeFormatted": "7/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/9/2026 12:00:00 PM",
+        "enteredTime": 1783612800000,
+        "time": 1783625400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.59,
+        "timeFormatted": "7/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/9/2026 11:30:00 AM",
+        "enteredTime": 1783611000000,
+        "time": 1783625400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 4.12,
+        "timeFormatted": "7/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/9/2026 11:00:00 AM",
+        "enteredTime": 1783609200000,
+        "time": 1783625400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 1.58,
+        "timeFormatted": "7/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/9/2026 12:00:00 PM",
+        "enteredTime": 1783612800000,
+        "time": 1783625400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.7,
+        "timeFormatted": "7/10/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/10/2026 11:30:00 AM",
+        "enteredTime": 1783697400000,
+        "time": 1783699200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.42,
+        "timeFormatted": "7/10/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/10/2026 2:30:00 PM",
+        "enteredTime": 1783708200000,
+        "time": 1783711800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.45,
+        "timeFormatted": "7/10/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/10/2026 12:00:00 PM",
+        "enteredTime": 1783699200000,
+        "time": 1783711800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.34,
+        "timeFormatted": "7/13/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/13/2026 11:30:00 AM",
+        "enteredTime": 1783956600000,
+        "time": 1783958400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.17,
+        "timeFormatted": "7/13/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/13/2026 11:30:00 AM",
+        "enteredTime": 1783956600000,
+        "time": 1783971000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.33,
+        "timeFormatted": "7/14/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/14/2026 11:00:00 AM",
+        "enteredTime": 1784041200000,
+        "time": 1784044800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.84,
+        "timeFormatted": "7/14/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/14/2026 1:00:00 PM",
+        "enteredTime": 1784048400000,
+        "time": 1784055600000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.37,
+        "timeFormatted": "7/14/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/14/2026 1:30:00 PM",
+        "enteredTime": 1784050200000,
+        "time": 1784057400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 1.82,
+        "timeFormatted": "7/14/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/14/2026 11:00:00 AM",
+        "enteredTime": 1784041200000,
+        "time": 1784057400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.12,
+        "timeFormatted": "7/15/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 11:00:00 AM",
+        "enteredTime": 1784127600000,
+        "time": 1784134800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.68,
+        "timeFormatted": "7/15/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 11:00:00 AM",
+        "enteredTime": 1784127600000,
+        "time": 1784134800000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 1.1,
+        "timeFormatted": "7/15/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 11:00:00 AM",
+        "enteredTime": 1784127600000,
+        "time": 1784136600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.15,
+        "timeFormatted": "7/15/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 1:30:00 PM",
+        "enteredTime": 1784136600000,
+        "time": 1784140200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.97,
+        "timeFormatted": "7/15/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 11:00:00 AM",
+        "enteredTime": 1784127600000,
+        "time": 1784143800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.93,
+        "timeFormatted": "7/15/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/15/2026 1:30:00 PM",
+        "enteredTime": 1784136600000,
+        "time": 1784143800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.78,
+        "timeFormatted": "7/16/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/16/2026 11:00:00 AM",
+        "enteredTime": 1784214000000,
+        "time": 1784215800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -1.29,
+        "timeFormatted": "7/16/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/16/2026 11:00:00 AM",
+        "enteredTime": 1784214000000,
+        "time": 1784219400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 1.11,
+        "timeFormatted": "7/16/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/16/2026 11:00:00 AM",
+        "enteredTime": 1784214000000,
+        "time": 1784230200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.69,
+        "timeFormatted": "7/17/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/17/2026 11:30:00 AM",
+        "enteredTime": 1784302200000,
+        "time": 1784304000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 2.63,
+        "timeFormatted": "7/17/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/17/2026 12:00:00 PM",
+        "enteredTime": 1784304000000,
+        "time": 1784311200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.34,
+        "timeFormatted": "7/17/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/17/2026 12:00:00 PM",
+        "enteredTime": 1784304000000,
+        "time": 1784311200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 1.17,
+        "timeFormatted": "7/20/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/20/2026 11:00:00 AM",
+        "enteredTime": 1784559600000,
+        "time": 1784574000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.58,
+        "timeFormatted": "7/20/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/20/2026 11:00:00 AM",
+        "enteredTime": 1784559600000,
+        "time": 1784575800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.01,
+        "timeFormatted": "7/21/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/21/2026 11:00:00 AM",
+        "enteredTime": 1784646000000,
+        "time": 1784655000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.88,
+        "timeFormatted": "7/21/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/21/2026 11:00:00 AM",
+        "enteredTime": 1784646000000,
+        "time": 1784655000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.53,
+        "timeFormatted": "7/22/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/22/2026 11:30:00 AM",
+        "enteredTime": 1784734200000,
+        "time": 1784748600000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.31,
+        "timeFormatted": "7/23/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/23/2026 12:30:00 PM",
+        "enteredTime": 1784824200000,
+        "time": 1784826000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.99,
+        "timeFormatted": "7/23/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/23/2026 12:30:00 PM",
+        "enteredTime": 1784824200000,
+        "time": 1784826000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.26,
+        "timeFormatted": "7/23/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/23/2026 12:30:00 PM",
+        "enteredTime": 1784824200000,
+        "time": 1784829600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.72,
+        "timeFormatted": "7/23/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/23/2026 12:30:00 PM",
+        "enteredTime": 1784824200000,
+        "time": 1784835000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.48,
+        "timeFormatted": "7/23/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/23/2026 12:30:00 PM",
+        "enteredTime": 1784824200000,
+        "time": 1784835000000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.34,
+        "timeFormatted": "7/24/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/24/2026 11:30:00 AM",
+        "enteredTime": 1784907000000,
+        "time": 1784908800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.24,
+        "timeFormatted": "7/24/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/24/2026 11:00:00 AM",
+        "enteredTime": 1784905200000,
+        "time": 1784908800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.71,
+        "timeFormatted": "7/24/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/24/2026 11:30:00 AM",
+        "enteredTime": 1784907000000,
+        "time": 1784917800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.81,
+        "timeFormatted": "7/24/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/24/2026 11:00:00 AM",
+        "enteredTime": 1784905200000,
+        "time": 1784917800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.77,
+        "timeFormatted": "7/24/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/24/2026 11:00:00 AM",
+        "enteredTime": 1784905200000,
+        "time": 1784921400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.84,
+        "timeFormatted": "7/27/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/27/2026 11:30:00 AM",
+        "enteredTime": 1785166200000,
+        "time": 1785168000000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.33,
+        "timeFormatted": "7/28/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 11:00:00 AM",
+        "enteredTime": 1785250800000,
+        "time": 1785254400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.25,
+        "timeFormatted": "7/28/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 11:00:00 AM",
+        "enteredTime": 1785250800000,
+        "time": 1785256200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.11,
+        "timeFormatted": "7/28/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 11:30:00 AM",
+        "enteredTime": 1785252600000,
+        "time": 1785256200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.18,
+        "timeFormatted": "7/28/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 12:00:00 PM",
+        "enteredTime": 1785254400000,
+        "time": 1785258000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.13,
+        "timeFormatted": "7/28/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 12:00:00 PM",
+        "enteredTime": 1785254400000,
+        "time": 1785267000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 1.69,
+        "timeFormatted": "7/28/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/28/2026 11:00:00 AM",
+        "enteredTime": 1785250800000,
+        "time": 1785267000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.15,
+        "timeFormatted": "7/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/29/2026 1:00:00 PM",
+        "enteredTime": 1785344400000,
+        "time": 1785353400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.14,
+        "timeFormatted": "7/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/29/2026 1:00:00 PM",
+        "enteredTime": 1785344400000,
+        "time": 1785353400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.66,
+        "timeFormatted": "7/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/29/2026 1:00:00 PM",
+        "enteredTime": 1785344400000,
+        "time": 1785353400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -1.31,
+        "timeFormatted": "7/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/29/2026 3:00:00 PM",
+        "enteredTime": 1785351600000,
+        "time": 1785353400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -1.67,
+        "timeFormatted": "7/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/29/2026 3:00:00 PM",
+        "enteredTime": 1785351600000,
+        "time": 1785353400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.61,
+        "timeFormatted": "7/30/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/30/2026 12:30:00 PM",
+        "enteredTime": 1785429000000,
+        "time": 1785432600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.16,
+        "timeFormatted": "7/30/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/30/2026 12:30:00 PM",
+        "enteredTime": 1785429000000,
+        "time": 1785438000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.36,
+        "timeFormatted": "7/30/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/30/2026 12:30:00 PM",
+        "enteredTime": 1785429000000,
+        "time": 1785439800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.93,
+        "timeFormatted": "7/30/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/30/2026 12:30:00 PM",
+        "enteredTime": 1785429000000,
+        "time": 1785439800000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.98,
+        "timeFormatted": "7/31/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 11:00:00 AM",
+        "enteredTime": 1785510000000,
+        "time": 1785511800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -1.86,
+        "timeFormatted": "7/31/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 11:00:00 AM",
+        "enteredTime": 1785510000000,
+        "time": 1785511800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -1,
+        "timeFormatted": "7/31/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 11:00:00 AM",
+        "enteredTime": 1785510000000,
+        "time": 1785511800000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.89,
+        "timeFormatted": "7/31/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 11:30:00 AM",
+        "enteredTime": 1785511800000,
+        "time": 1785517200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.35,
+        "timeFormatted": "7/31/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 12:30:00 PM",
+        "enteredTime": 1785515400000,
+        "time": 1785517200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.28,
+        "timeFormatted": "7/31/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 12:30:00 PM",
+        "enteredTime": 1785515400000,
+        "time": 1785522600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.37,
+        "timeFormatted": "7/31/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 12:30:00 PM",
+        "enteredTime": 1785515400000,
+        "time": 1785526200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.6,
+        "timeFormatted": "7/31/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 12:30:00 PM",
+        "enteredTime": 1785515400000,
+        "time": 1785526200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.34,
+        "timeFormatted": "7/31/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "7/31/2026 12:30:00 PM",
+        "enteredTime": 1785515400000,
+        "time": 1785526200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.04,
+        "timeFormatted": "8/3/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/3/2026 11:00:00 AM",
+        "enteredTime": 1785769200000,
+        "time": 1785774600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.14,
+        "timeFormatted": "8/3/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/3/2026 11:30:00 AM",
+        "enteredTime": 1785771000000,
+        "time": 1785776400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.51,
+        "timeFormatted": "8/3/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/3/2026 11:30:00 AM",
+        "enteredTime": 1785771000000,
+        "time": 1785778200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.17,
+        "timeFormatted": "8/3/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/3/2026 1:00:00 PM",
+        "enteredTime": 1785776400000,
+        "time": 1785780000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.75,
+        "timeFormatted": "8/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/3/2026 11:00:00 AM",
+        "enteredTime": 1785769200000,
+        "time": 1785785400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.04,
+        "timeFormatted": "8/4/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/4/2026 11:00:00 AM",
+        "enteredTime": 1785855600000,
+        "time": 1785861000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.37,
+        "timeFormatted": "8/4/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/4/2026 1:30:00 PM",
+        "enteredTime": 1785864600000,
+        "time": 1785871800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.88,
+        "timeFormatted": "8/5/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/5/2026 11:00:00 AM",
+        "enteredTime": 1785942000000,
+        "time": 1785943800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.3,
+        "timeFormatted": "8/5/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/5/2026 12:30:00 PM",
+        "enteredTime": 1785947400000,
+        "time": 1785958200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.3,
+        "timeFormatted": "8/7/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/7/2026 11:00:00 AM",
+        "enteredTime": 1786114800000,
+        "time": 1786116600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.3,
+        "timeFormatted": "8/7/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/7/2026 11:00:00 AM",
+        "enteredTime": 1786114800000,
+        "time": 1786116600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.49,
+        "timeFormatted": "8/7/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/7/2026 11:00:00 AM",
+        "enteredTime": 1786114800000,
+        "time": 1786118400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.6,
+        "timeFormatted": "8/10/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/10/2026 11:00:00 AM",
+        "enteredTime": 1786374000000,
+        "time": 1786375800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.67,
+        "timeFormatted": "8/11/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/11/2026 11:00:00 AM",
+        "enteredTime": 1786460400000,
+        "time": 1786464000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.68,
+        "timeFormatted": "8/13/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/13/2026 1:00:00 PM",
+        "enteredTime": 1786640400000,
+        "time": 1786649400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.69,
+        "timeFormatted": "8/14/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/14/2026 12:30:00 PM",
+        "enteredTime": 1786725000000,
+        "time": 1786726800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.11,
+        "timeFormatted": "8/14/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/14/2026 2:00:00 PM",
+        "enteredTime": 1786730400000,
+        "time": 1786735800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.57,
+        "timeFormatted": "8/18/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/18/2026 11:00:00 AM",
+        "enteredTime": 1787065200000,
+        "time": 1787067000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.1,
+        "timeFormatted": "8/18/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/18/2026 11:30:00 AM",
+        "enteredTime": 1787067000000,
+        "time": 1787070600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.77,
+        "timeFormatted": "8/18/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/18/2026 12:00:00 PM",
+        "enteredTime": 1787068800000,
+        "time": 1787070600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.23,
+        "timeFormatted": "8/18/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/18/2026 11:00:00 AM",
+        "enteredTime": 1787065200000,
+        "time": 1787081400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.36,
+        "timeFormatted": "8/19/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/19/2026 12:00:00 PM",
+        "enteredTime": 1787155200000,
+        "time": 1787157000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.45,
+        "timeFormatted": "8/19/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/19/2026 11:00:00 AM",
+        "enteredTime": 1787151600000,
+        "time": 1787158800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.65,
+        "timeFormatted": "8/19/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/19/2026 11:00:00 AM",
+        "enteredTime": 1787151600000,
+        "time": 1787167800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.25,
+        "timeFormatted": "8/19/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/19/2026 11:00:00 AM",
+        "enteredTime": 1787151600000,
+        "time": 1787167800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.45,
+        "timeFormatted": "8/20/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/20/2026 11:30:00 AM",
+        "enteredTime": 1787239800000,
+        "time": 1787247000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.58,
+        "timeFormatted": "8/21/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/21/2026 11:00:00 AM",
+        "enteredTime": 1787324400000,
+        "time": 1787326200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.34,
+        "timeFormatted": "8/21/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/21/2026 11:30:00 AM",
+        "enteredTime": 1787326200000,
+        "time": 1787335200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.21,
+        "timeFormatted": "8/21/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/21/2026 12:30:00 PM",
+        "enteredTime": 1787329800000,
+        "time": 1787340600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.57,
+        "timeFormatted": "8/24/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/24/2026 11:00:00 AM",
+        "enteredTime": 1787583600000,
+        "time": 1787587200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.24,
+        "timeFormatted": "8/25/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/25/2026 11:30:00 AM",
+        "enteredTime": 1787671800000,
+        "time": 1787679000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.41,
+        "timeFormatted": "8/26/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/26/2026 11:00:00 AM",
+        "enteredTime": 1787756400000,
+        "time": 1787758200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.66,
+        "timeFormatted": "8/27/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/27/2026 11:00:00 AM",
+        "enteredTime": 1787842800000,
+        "time": 1787844600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.36,
+        "timeFormatted": "8/27/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/27/2026 11:00:00 AM",
+        "enteredTime": 1787842800000,
+        "time": 1787844600000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.11,
+        "timeFormatted": "8/27/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/27/2026 12:30:00 PM",
+        "enteredTime": 1787848200000,
+        "time": 1787853600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.34,
+        "timeFormatted": "8/27/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/27/2026 1:00:00 PM",
+        "enteredTime": 1787850000000,
+        "time": 1787855400000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.34,
+        "timeFormatted": "8/27/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/27/2026 11:30:00 AM",
+        "enteredTime": 1787844600000,
+        "time": 1787859000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.06,
+        "timeFormatted": "8/28/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/28/2026 11:00:00 AM",
+        "enteredTime": 1787929200000,
+        "time": 1787932800000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.18,
+        "timeFormatted": "8/28/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/28/2026 11:00:00 AM",
+        "enteredTime": 1787929200000,
+        "time": 1787932800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -1.57,
+        "timeFormatted": "8/28/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/28/2026 11:30:00 AM",
+        "enteredTime": 1787931000000,
+        "time": 1787932800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.3,
+        "timeFormatted": "8/28/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/28/2026 11:00:00 AM",
+        "enteredTime": 1787929200000,
+        "time": 1787938200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.38,
+        "timeFormatted": "8/28/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/28/2026 11:00:00 AM",
+        "enteredTime": 1787929200000,
+        "time": 1787945400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.54,
+        "timeFormatted": "8/31/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "8/31/2026 11:00:00 AM",
+        "enteredTime": 1788188400000,
+        "time": 1788202800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.41,
+        "timeFormatted": "9/1/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/1/2026 11:00:00 AM",
+        "enteredTime": 1788274800000,
+        "time": 1788280200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.3,
+        "timeFormatted": "9/1/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/1/2026 12:00:00 PM",
+        "enteredTime": 1788278400000,
+        "time": 1788280200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.77,
+        "timeFormatted": "9/2/2026 1:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/2/2026 11:00:00 AM",
+        "enteredTime": 1788361200000,
+        "time": 1788368400000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.49,
+        "timeFormatted": "9/3/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 12:00:00 PM",
+        "enteredTime": 1788451200000,
+        "time": 1788453000000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.47,
+        "timeFormatted": "9/3/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 2:30:00 PM",
+        "enteredTime": 1788460200000,
+        "time": 1788462000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.38,
+        "timeFormatted": "9/3/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 11:00:00 AM",
+        "enteredTime": 1788447600000,
+        "time": 1788462000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.16,
+        "timeFormatted": "9/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 12:00:00 PM",
+        "enteredTime": 1788451200000,
+        "time": 1788463800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.78,
+        "timeFormatted": "9/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 11:30:00 AM",
+        "enteredTime": 1788449400000,
+        "time": 1788463800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.21,
+        "timeFormatted": "9/3/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/3/2026 2:00:00 PM",
+        "enteredTime": 1788458400000,
+        "time": 1788463800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.24,
+        "timeFormatted": "9/4/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/4/2026 12:00:00 PM",
+        "enteredTime": 1788537600000,
+        "time": 1788550200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.35,
+        "timeFormatted": "9/4/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/4/2026 3:00:00 PM",
+        "enteredTime": 1788548400000,
+        "time": 1788550200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.39,
+        "timeFormatted": "9/8/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/8/2026 11:30:00 AM",
+        "enteredTime": 1788881400000,
+        "time": 1788883200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.19,
+        "timeFormatted": "9/8/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/8/2026 11:00:00 AM",
+        "enteredTime": 1788879600000,
+        "time": 1788890400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.17,
+        "timeFormatted": "9/8/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/8/2026 11:00:00 AM",
+        "enteredTime": 1788879600000,
+        "time": 1788895800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.35,
+        "timeFormatted": "9/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/9/2026 3:00:00 PM",
+        "enteredTime": 1788980400000,
+        "time": 1788982200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.23,
+        "timeFormatted": "9/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/9/2026 11:00:00 AM",
+        "enteredTime": 1788966000000,
+        "time": 1788982200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.37,
+        "timeFormatted": "9/10/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/10/2026 11:00:00 AM",
+        "enteredTime": 1789052400000,
+        "time": 1789054200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.91,
+        "timeFormatted": "9/10/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/10/2026 11:00:00 AM",
+        "enteredTime": 1789052400000,
+        "time": 1789054200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -1.08,
+        "timeFormatted": "9/10/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/10/2026 11:00:00 AM",
+        "enteredTime": 1789052400000,
+        "time": 1789056000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.6,
+        "timeFormatted": "9/10/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/10/2026 1:00:00 PM",
+        "enteredTime": 1789059600000,
+        "time": 1789068600000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.76,
+        "timeFormatted": "9/14/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/14/2026 11:30:00 AM",
+        "enteredTime": 1789399800000,
+        "time": 1789410600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.58,
+        "timeFormatted": "9/14/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/14/2026 12:00:00 PM",
+        "enteredTime": 1789401600000,
+        "time": 1789410600000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.77,
+        "timeFormatted": "9/14/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/14/2026 12:00:00 PM",
+        "enteredTime": 1789401600000,
+        "time": 1789412400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.04,
+        "timeFormatted": "9/14/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/14/2026 12:00:00 PM",
+        "enteredTime": 1789401600000,
+        "time": 1789414200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.58,
+        "timeFormatted": "9/15/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/15/2026 12:00:00 PM",
+        "enteredTime": 1789488000000,
+        "time": 1789493400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.14,
+        "timeFormatted": "9/15/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/15/2026 2:30:00 PM",
+        "enteredTime": 1789497000000,
+        "time": 1789500600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.78,
+        "timeFormatted": "9/16/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/16/2026 11:00:00 AM",
+        "enteredTime": 1789570800000,
+        "time": 1789576200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.28,
+        "timeFormatted": "9/17/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/17/2026 12:30:00 PM",
+        "enteredTime": 1789662600000,
+        "time": 1789673400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.25,
+        "timeFormatted": "9/17/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/17/2026 12:00:00 PM",
+        "enteredTime": 1789660800000,
+        "time": 1789673400000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.43,
+        "timeFormatted": "9/21/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/21/2026 12:30:00 PM",
+        "enteredTime": 1790008200000,
+        "time": 1790019000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 3.5,
+        "timeFormatted": "9/21/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/21/2026 12:00:00 PM",
+        "enteredTime": 1790006400000,
+        "time": 1790019000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.38,
+        "timeFormatted": "9/22/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/22/2026 11:30:00 AM",
+        "enteredTime": 1790091000000,
+        "time": 1790092800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.27,
+        "timeFormatted": "9/23/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/23/2026 11:30:00 AM",
+        "enteredTime": 1790177400000,
+        "time": 1790179200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.53,
+        "timeFormatted": "9/24/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 11:00:00 AM",
+        "enteredTime": 1790262000000,
+        "time": 1790263800000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.3,
+        "timeFormatted": "9/24/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 1:00:00 PM",
+        "enteredTime": 1790269200000,
+        "time": 1790271000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.22,
+        "timeFormatted": "9/24/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 12:30:00 PM",
+        "enteredTime": 1790267400000,
+        "time": 1790271000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.06,
+        "timeFormatted": "9/24/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 1:00:00 PM",
+        "enteredTime": 1790269200000,
+        "time": 1790278200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.02,
+        "timeFormatted": "9/24/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 3:00:00 PM",
+        "enteredTime": 1790276400000,
+        "time": 1790278200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.22,
+        "timeFormatted": "9/24/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/24/2026 1:00:00 PM",
+        "enteredTime": 1790269200000,
+        "time": 1790278200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.02,
+        "timeFormatted": "9/28/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/28/2026 12:00:00 PM",
+        "enteredTime": 1790611200000,
+        "time": 1790623800000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.46,
+        "timeFormatted": "9/29/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/29/2026 11:00:00 AM",
+        "enteredTime": 1790694000000,
+        "time": 1790695800000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.1,
+        "timeFormatted": "9/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/29/2026 3:00:00 PM",
+        "enteredTime": 1790708400000,
+        "time": 1790710200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.76,
+        "timeFormatted": "9/29/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/29/2026 1:30:00 PM",
+        "enteredTime": 1790703000000,
+        "time": 1790710200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.45,
+        "timeFormatted": "9/30/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/30/2026 11:00:00 AM",
+        "enteredTime": 1790780400000,
+        "time": 1790789400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.46,
+        "timeFormatted": "9/30/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/30/2026 12:00:00 PM",
+        "enteredTime": 1790784000000,
+        "time": 1790789400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.59,
+        "timeFormatted": "9/30/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "9/30/2026 12:00:00 PM",
+        "enteredTime": 1790784000000,
+        "time": 1790789400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.44,
+        "timeFormatted": "10/1/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/1/2026 11:00:00 AM",
+        "enteredTime": 1790866800000,
+        "time": 1790868600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.18,
+        "timeFormatted": "10/1/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/1/2026 1:30:00 PM",
+        "enteredTime": 1790875800000,
+        "time": 1790883000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.08,
+        "timeFormatted": "10/2/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/2/2026 11:00:00 AM",
+        "enteredTime": 1790953200000,
+        "time": 1790969400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.12,
+        "timeFormatted": "10/5/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/5/2026 11:00:00 AM",
+        "enteredTime": 1791212400000,
+        "time": 1791228600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.95,
+        "timeFormatted": "10/7/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/7/2026 11:30:00 AM",
+        "enteredTime": 1791387000000,
+        "time": 1791401400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.31,
+        "timeFormatted": "10/7/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/7/2026 2:00:00 PM",
+        "enteredTime": 1791396000000,
+        "time": 1791401400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.56,
+        "timeFormatted": "10/8/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/8/2026 11:00:00 AM",
+        "enteredTime": 1791471600000,
+        "time": 1791475200000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.15,
+        "timeFormatted": "10/9/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/9/2026 11:00:00 AM",
+        "enteredTime": 1791558000000,
+        "time": 1791567000000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.66,
+        "timeFormatted": "10/9/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/9/2026 12:30:00 PM",
+        "enteredTime": 1791563400000,
+        "time": 1791567000000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.27,
+        "timeFormatted": "10/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/9/2026 3:00:00 PM",
+        "enteredTime": 1791572400000,
+        "time": 1791574200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": 0.35,
+        "timeFormatted": "10/9/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/9/2026 11:00:00 AM",
+        "enteredTime": 1791558000000,
+        "time": 1791574200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.41,
+        "timeFormatted": "10/12/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/12/2026 2:00:00 PM",
+        "enteredTime": 1791828000000,
+        "time": 1791831600000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.65,
+        "timeFormatted": "10/13/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/13/2026 11:30:00 AM",
+        "enteredTime": 1791905400000,
+        "time": 1791909000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.35,
+        "timeFormatted": "10/13/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/13/2026 12:30:00 PM",
+        "enteredTime": 1791909000000,
+        "time": 1791919800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.4,
+        "timeFormatted": "10/14/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/14/2026 11:00:00 AM",
+        "enteredTime": 1791990000000,
+        "time": 1791991800000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.07,
+        "timeFormatted": "10/15/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/15/2026 11:00:00 AM",
+        "enteredTime": 1792076400000,
+        "time": 1792081800000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.35,
+        "timeFormatted": "10/15/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/15/2026 11:00:00 AM",
+        "enteredTime": 1792076400000,
+        "time": 1792081800000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.43,
+        "timeFormatted": "10/15/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/15/2026 11:00:00 AM",
+        "enteredTime": 1792076400000,
+        "time": 1792081800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.32,
+        "timeFormatted": "10/15/2026 2:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/15/2026 1:30:00 PM",
+        "enteredTime": 1792085400000,
+        "time": 1792089000000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": 0.31,
+        "timeFormatted": "10/19/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/19/2026 11:00:00 AM",
+        "enteredTime": 1792422000000,
+        "time": 1792427400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.35,
+        "timeFormatted": "10/19/2026 1:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/19/2026 11:00:00 AM",
+        "enteredTime": 1792422000000,
+        "time": 1792431000000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.48,
+        "timeFormatted": "10/19/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/19/2026 11:00:00 AM",
+        "enteredTime": 1792422000000,
+        "time": 1792438200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": 0.2,
+        "timeFormatted": "10/19/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/19/2026 11:30:00 AM",
+        "enteredTime": 1792423800000,
+        "time": 1792438200000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.52,
+        "timeFormatted": "10/20/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/20/2026 11:00:00 AM",
+        "enteredTime": 1792508400000,
+        "time": 1792510200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.79,
+        "timeFormatted": "10/20/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/20/2026 11:00:00 AM",
+        "enteredTime": 1792508400000,
+        "time": 1792510200000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.73,
+        "timeFormatted": "10/20/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/20/2026 11:00:00 AM",
+        "enteredTime": 1792508400000,
+        "time": 1792524600000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": -0.04,
+        "timeFormatted": "10/21/2026 3:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/21/2026 11:30:00 AM",
+        "enteredTime": 1792596600000,
+        "time": 1792609200000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.15,
+        "timeFormatted": "10/21/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/21/2026 11:30:00 AM",
+        "enteredTime": 1792596600000,
+        "time": 1792611000000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -1.43,
+        "timeFormatted": "10/22/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/22/2026 12:00:00 PM",
+        "enteredTime": 1792684800000,
+        "time": 1792686600000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.1,
+        "timeFormatted": "10/23/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/23/2026 11:00:00 AM",
+        "enteredTime": 1792767600000,
+        "time": 1792771200000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.36,
+        "timeFormatted": "10/23/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/23/2026 11:00:00 AM",
+        "enteredTime": 1792767600000,
+        "time": 1792783800000
+      },
+      {
+        "symbol": "MSFT",
+        "gainPercent": -0.45,
+        "timeFormatted": "10/26/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793028600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -0.58,
+        "timeFormatted": "10/26/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793030400000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.68,
+        "timeFormatted": "10/26/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793030400000
+      },
+      {
+        "symbol": "NVDA",
+        "gainPercent": -0.8,
+        "timeFormatted": "10/26/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793030400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.57,
+        "timeFormatted": "10/26/2026 12:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793030400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -1.24,
+        "timeFormatted": "10/26/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/26/2026 11:00:00 AM",
+        "enteredTime": 1793026800000,
+        "time": 1793043000000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -0.32,
+        "timeFormatted": "10/27/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/27/2026 12:00:00 PM",
+        "enteredTime": 1793116800000,
+        "time": 1793118600000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": 0.19,
+        "timeFormatted": "10/27/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/27/2026 11:00:00 AM",
+        "enteredTime": 1793113200000,
+        "time": 1793129400000
+      },
+      {
+        "symbol": "AMZN",
+        "gainPercent": 0.99,
+        "timeFormatted": "10/27/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/27/2026 11:00:00 AM",
+        "enteredTime": 1793113200000,
+        "time": 1793129400000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": 0.99,
+        "timeFormatted": "10/27/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/27/2026 11:00:00 AM",
+        "enteredTime": 1793113200000,
+        "time": 1793129400000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": 0.15,
+        "timeFormatted": "10/28/2026 3:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/28/2026 11:30:00 AM",
+        "enteredTime": 1793201400000,
+        "time": 1793215800000
+      },
+      {
+        "symbol": "META",
+        "gainPercent": -0.61,
+        "timeFormatted": "10/30/2026 11:30:00 AM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/30/2026 11:00:00 AM",
+        "enteredTime": 1793372400000,
+        "time": 1793374200000
+      },
+      {
+        "symbol": "GOOGL",
+        "gainPercent": -0.55,
+        "timeFormatted": "10/30/2026 12:30:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/30/2026 11:30:00 AM",
+        "enteredTime": 1793374200000,
+        "time": 1793377800000
+      },
+      {
+        "symbol": "AAPL",
+        "gainPercent": -1.12,
+        "timeFormatted": "10/30/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/30/2026 11:00:00 AM",
+        "enteredTime": 1793372400000,
+        "time": 1793383200000
+      },
+      {
+        "symbol": "TSLA",
+        "gainPercent": -1.52,
+        "timeFormatted": "10/30/2026 2:00:00 PM",
+        "atClose": false,
+        "enteredTimeFormatted": "10/30/2026 11:00:00 AM",
+        "enteredTime": 1793372400000,
+        "time": 1793383200000
+      }
+    ],
+    "total": -0.07960903297033495,
+    "tradeNum": 289,
+    "avgTrade": -0.0002754637819042732,
+    "name": "testStrat2"
+  }
+]

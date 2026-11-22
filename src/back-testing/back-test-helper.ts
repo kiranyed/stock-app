@@ -27,7 +27,7 @@ export const transformCandles = (candles: IPolygonCandle[]) => {
 
 export class BackTestHelper {
   useShwab: boolean;
-  constructor(useShwab = false) {
+  constructor(useShwab = true) {
     this.useShwab = useShwab;
   }
 
