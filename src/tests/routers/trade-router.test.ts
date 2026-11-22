@@ -4,6 +4,7 @@ import { SchwabAPI } from "../../shared/services/trading-api";
 import { IOrder, IPosition } from "../../types/external-data-types";
 import { AccountType } from "../../shared/enums";
 import StockInfoRepository from "../../shared/services/repos/stock-info-repository";
+import PositionsRepository from "../../shared/services/repos/positions-repository";
 import {
   makeOrders,
   getAccountPositions,
@@ -13,6 +14,7 @@ import {
 
 jest.mock("../../shared/services/trading-api");
 jest.mock("../../shared/services/repos/stock-info-repository");
+jest.mock("../../shared/services/repos/positions-repository");
 jest.mock("../../middleware/shared-funcs");
 
 describe("tradeRouter", () => {
@@ -51,7 +53,15 @@ describe("tradeRouter", () => {
         AccountType.REGULAR,
       );
       expect(res.status).toHaveBeenCalledWith(StatusCodes.CREATED);
-      expect(res.json).toHaveBeenCalledWith({ message: "success" });
+      expect(res.json).toHaveBeenCalledWith({
+        message: "Placed 1 order(s)",
+        acceptedCount: 1,
+        failedCount: 0,
+        orderIds: ["12345"],
+        results: [
+          { index: 0, symbol: "AAPL", orderId: "12345", status: "accepted" },
+        ],
+      });
     });
 
     it("should call next with the error on failure", async () => {
@@ -68,26 +78,31 @@ describe("tradeRouter", () => {
   });
 
   describe("getAccountPositions", () => {
+    const mockPositions: IPosition[] = [
+      {
+        shortQuantity: 0,
+        longQuantity: 1,
+        averagePrice: 150,
+        currentDayProfitLoss: 10,
+        currentDayProfitLossPercentage: 5,
+        settledLongQuantity: 1,
+        settledShortQuantity: 0,
+        instrument: { symbol: "AAPL", assetType: "EQUITY", cusip: "037833100", netChange: 1.5 },
+        marketValue: 150,
+        maintenanceRequirement: 0,
+        averageLongPrice: 150,
+        taxLotAverageLongPrice: 150,
+        longOpenProfitLoss: 10,
+        previousSessionLongQuantity: 1,
+        currentDayCost: 0,
+      },
+    ];
+
+    beforeEach(() => {
+      (PositionsRepository.getActiveRulesByAccount as jest.Mock).mockResolvedValue([]);
+    });
+
     it("should return positions", async () => {
-      const mockPositions: IPosition[] = [
-        {
-          shortQuantity: 0,
-          longQuantity: 1,
-          averagePrice: 150,
-          currentDayProfitLoss: 10,
-          currentDayProfitLossPercentage: 5,
-          settledLongQuantity: 1,
-          settledShortQuantity: 0,
-          instrument: { symbol: "AAPL", assetType: "EQUITY", cusip: "037833100", netChange: 1.5 },
-          marketValue: 150,
-          maintenanceRequirement: 0,
-          averageLongPrice: 150,
-          taxLotAverageLongPrice: 150,
-          longOpenProfitLoss: 10,
-          previousSessionLongQuantity: 1,
-          currentDayCost: 0,
-        },
-      ];
       (SchwabAPI.getStocks as jest.Mock).mockResolvedValue([
         { symbol: "AAPL", labels: "tech" },
       ]);
@@ -107,6 +122,41 @@ describe("tradeRouter", () => {
           labels: "tech",
           symbol: position.instrument.symbol,
         })),
+      });
+    });
+
+    it("should merge an active position rule into the matching position", async () => {
+      (SchwabAPI.getStocks as jest.Mock).mockResolvedValue([
+        { symbol: "AAPL", labels: "tech" },
+      ]);
+      (SchwabAPI.getAccountPositions as jest.Mock).mockResolvedValue(
+        mockPositions,
+      );
+      (StockInfoRepository.getStockInfo as jest.Mock).mockResolvedValue([
+        { symbol: "AAPL", labels: "tech" },
+      ]);
+      (PositionsRepository.getActiveRulesByAccount as jest.Mock).mockResolvedValue([
+        { id: 7, symbol: "AAPL", stop_loss: "140.5", target: 175, is_active: true },
+      ]);
+
+      await getAccountPositions(req as Request, res as Response, next);
+
+      expect(PositionsRepository.getActiveRulesByAccount).toHaveBeenCalledWith(
+        AccountType.REGULAR,
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        positions: [
+          {
+            ...mockPositions[0],
+            labels: "tech",
+            symbol: "AAPL",
+            stopLoss: 140.5,
+            stopLossOnUnderlying: undefined,
+            target: 175,
+            targetOnUnderlying: undefined,
+            positionRuleId: 7,
+          },
+        ],
       });
     });
 
