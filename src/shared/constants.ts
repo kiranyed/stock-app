@@ -42,7 +42,6 @@ export class CONSTANTS {
 export enum StrategyType {
   BACKTEST,
   SIMULATION,
-  REAL,
 }
 
 export enum Period {
@@ -63,7 +62,7 @@ export enum ScreenerJobType {
 rather than having to do CONSTANTS.beginTime, etc. ? */
 export const BEGIN_TIME = 570;
 export const END_TIME = 960;
-export const DAY_PERIOD_TRADE_TIME = 958;
+export const DAY_PERIOD_TRADE_TIME = 959;
 export const MINS_IN_DAY = 1440;
 export const MILLIS_IN_DAY = 86400000;
 export const MAX_STOCK_QUOTES_PER_REQUEST = 195;

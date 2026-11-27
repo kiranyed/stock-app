@@ -1,59 +1,30 @@
 import { HistoricalWarmupService } from "../../run/historical-warmup-service";
-import { SchwabAPI } from "../../shared/services/trading-api";
-import { CONSTANTS, MemoryType, PeriodType } from "../../shared/constants";
-import {
-  IInitializedJobData,
-  IStockScreenerJob,
-} from "../../types/data-processing-types";
+import { SchwabAuth } from "../../providers/schwab/schwab-auth";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
+import { DatabaseAPI } from "../../shared/services/db-api";
+import { CONSTANTS, PeriodType } from "../../shared/constants";
 import { IStockGroup } from "../../types/entity-types";
-
-const makeEmptySlice = (): IInitializedJobData => ({
-  newNames: {
-    [PeriodType.MINUTE]: [],
-    [PeriodType.FIVE_MINUTES]: [],
-    [PeriodType.TEN_MINUTES]: [],
-    [PeriodType.THIRTY_MINUTES]: [],
-    [PeriodType.HOUR]: [],
-    [PeriodType.DAY]: [],
-  },
-  newFilterData: {
-    [PeriodType.MINUTE]: {},
-    [PeriodType.FIVE_MINUTES]: {},
-    [PeriodType.TEN_MINUTES]: {},
-    [PeriodType.THIRTY_MINUTES]: {},
-    [PeriodType.HOUR]: {},
-    [PeriodType.DAY]: {},
-  },
-  newMemories: {
-    [PeriodType.MINUTE]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-    [PeriodType.FIVE_MINUTES]: {
-      [MemoryType.PRICE]: {},
-      [MemoryType.VOLUME]: {},
-    },
-    [PeriodType.TEN_MINUTES]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-    [PeriodType.THIRTY_MINUTES]: {
-      [MemoryType.PRICE]: {},
-      [MemoryType.VOLUME]: {},
-    },
-    [PeriodType.HOUR]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-    [PeriodType.DAY]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-  },
-});
+import { ProbeBackTest, strategy } from "../golden/golden-harness";
 
 describe("Integration - Historical Warmup", () => {
   let schwabReady = false;
 
   beforeAll(async () => {
     try {
-      await SchwabAPI.initialize();
-      await SchwabAPI.testAccessToken();
+      await SchwabAuth.initialize();
+      await SchwabAuth.getAccessToken();
       schwabReady = true;
     } catch {
       schwabReady = false;
     }
+  }, 60000);
+
+  // SchwabAuth reads the sign-in from the database, which opens the pool
+  afterAll(async () => {
+    await DatabaseAPI.closeConnection();
   });
 
-  it("warms AAPL day PRICE memory with Schwab daily candle closes", async () => {
+  it("warms an AAPL daily SMA5 from Schwab daily candle closes", async () => {
     if (!schwabReady) {
       console.warn(
         "Skipping historical warmup integration test: Schwab auth unavailable.",
@@ -61,48 +32,28 @@ describe("Integration - Historical Warmup", () => {
       return;
     }
 
-    const jobs: IStockScreenerJob[] = [];
-    const group: IStockGroup = {
-      id: 1,
-      name: "warmup-test-group",
-      symbols: ["AAPL"],
-    };
-    const slice = makeEmptySlice();
-    const space = 5;
-    slice.newNames[PeriodType.DAY] = ["AAPL"];
-    slice.newMemories[PeriodType.DAY][MemoryType.PRICE].AAPL = {
-      space,
-      list: new Array(space).fill(NaN),
-      lastTime: 0,
-    };
+    const group: IStockGroup = { id: 1, name: "warmup-test-group", symbols: ["AAPL"] };
+    const job = new ProbeBackTest(
+      strategy(PeriodType.DAY, [{ varName: "priceSma", timeAgo: "5", operator: ">", compareVal: "0" }]),
+    );
 
     // Use a fixed past date so this test is deterministic and not dependent on current market session.
     const fixedEndTime = Date.UTC(2025, 8, 18, 20, 0, 0);
+    const warmed = await HistoricalWarmupService.warm([job], group, fixedEndTime);
 
-    const warmed = await HistoricalWarmupService.warmInitializedSlice(
-      jobs,
-      group,
-      slice,
-      fixedEndTime,
-    );
-
-    const warmedPriceMemory =
-      warmed.newMemories[PeriodType.DAY][MemoryType.PRICE].AAPL;
-    expect(warmedPriceMemory.list).toHaveLength(space);
-    expect(warmedPriceMemory.lastTime).toBeGreaterThan(0);
-
-    const expected = await SchwabAPI.getHistoryWithBounds(
+    const expected = await SchwabClient.getPriceHistory(
       "AAPL",
       "month",
       "daily",
       1,
-      warmedPriceMemory.lastTime - 120 * CONSTANTS.MILLIS_IN_DAY,
-      warmedPriceMemory.lastTime,
+      fixedEndTime - 120 * CONSTANTS.MILLIS_IN_DAY,
+      fixedEndTime,
     );
-    const expectedTail = expected.candles.slice(-space).map((candle) => candle.close);
-
-    expect(expectedTail.length).toBe(space);
-    expect(warmedPriceMemory.list).toEqual(expectedTail);
+    const tail = expected.candles.slice(-5).map((candle) => candle.close);
+    expect(tail).toHaveLength(5);
+    expect(warmed.get("AAPL", PeriodType.DAY, "priceSma5")?.value).toBeCloseTo(
+      tail.reduce((a, b) => a + b, 0) / 5,
+      6,
+    );
   }, 120000);
-
 });

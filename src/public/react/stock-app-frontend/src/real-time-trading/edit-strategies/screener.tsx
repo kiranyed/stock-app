@@ -80,24 +80,7 @@ const ScreenerNew: React.FC<IProps> = (props) => {
       setInEditMode(false);
       setFresh(false);
       setError("");
-      const newScreener = InitUtil.initScreener();
-      if (
-        screener.buySellFilters &&
-        InitUtil.isNotEmpty(screener.buySellFilters)
-      ) {
-        newScreener.buySellFilters = {
-          ...InitUtil.getDeepCopy(screener.buySellFilters),
-        };
-      }
-      if (
-        screener.shortCoverFilters &&
-        InitUtil.isNotEmpty(screener.shortCoverFilters)
-      ) {
-        newScreener.shortCoverFilters = {
-          ...InitUtil.getDeepCopy(screener.shortCoverFilters),
-        };
-      }
-      props.saveScreener(newScreener, props.index);
+      props.saveScreener(ScreenerUtil.toSaved(screener, props.screener.id), props.index);
     }
   };
 

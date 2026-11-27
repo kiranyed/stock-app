@@ -1,34 +1,15 @@
-import { PeriodType, MemoryType } from "../shared/constants";
-import { ICandle, IGainTotal } from "./back-test-types";
+import { PeriodType } from "../shared/constants";
+import { IGainTotal } from "./back-test-types";
 import { IData } from "./general-types";
+import { FilterVariable } from "../engine/filter-specs";
 
 // shout out chatgbt
 export type PartialPeriodRecord<ValueType> = Partial<
   Record<PeriodType, ValueType>
 >;
 
-export type IAllMemory = Record<PeriodType, Record<string, IMemory>>;
-export type IAllMemoryBackTest = Record<
-  PeriodType,
-  Record<MemoryType, IMemoryBackTest>
->;
-
 export type IAllFilterData = Record<PeriodType, IFilterData>;
 export type IAllStockNames = Record<PeriodType, string[]>;
-
-export interface IInitializedJobData {
-  newNames: IAllStockNames;
-  newFilterData: IAllFilterData;
-  newMemories: IAllMemory;
-}
-
-export interface IMemory {
-  [stockName: string]: { space: number; list: number[]; lastTime: number };
-}
-
-export interface IMemoryBackTest {
-  [stockName: string]: { space: number; list: ICandle[]; lastTime: number };
-}
 
 export interface IFilterData {
   [filterName: string]: { [stockName: string]: number };
@@ -61,12 +42,11 @@ export interface IStockDataMap {
 export interface IStockScreenerJob extends IJob {
   getName(): string;
   getPeriod(): PeriodType;
-  getAdditionalPeriods(): PeriodType[];
-  getCrossPeriodVars(): Partial<IAllFilterData>;
+  /** every variable the job reads; the master job computes and fills them */
+  getVariables(): FilterVariable[];
+  /** the job's variable values, [name][symbol]; the master job writes engine values here */
   getVars(): IFilterData;
   run(time: number, stockData: IStockData[]): void;
-  getAllVariables(): string[];
-  canRun(minutesSinceStart: number): boolean;
   getConfigId(): number;
 }
 
@@ -90,14 +70,3 @@ export interface IJob {
   clearIntradayStateData?(): void;
   runDailyMaintenance?(): void;
 }
-
-export interface IHistogramData {
-  /** 21 edges defining 20 fixed bins from -20% to +20% in 2% steps */
-  binEdges: number[];
-  /** count of values in each bin */
-  counts: number[];
-  totalCount: number;
-}
-
-/** [period][variableKey][symbol] => IHistogramData */
-export type IAllHistograms = Partial<Record<PeriodType, Record<string, Record<string, IHistogramData>>>>;

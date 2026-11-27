@@ -6,15 +6,13 @@ import {
 } from "../../types/strategy-types";
 import { StockTradeUtil } from "../utilities/stock-trade";
 import {
-  IAllFilterData,
   IFilterData,
   IStockData,
   IStockScreenerJob,
 } from "../../types/data-processing-types";
 import { CONSTANTS, PeriodType } from "../constants";
 import { Screener } from "./screener";
-import { VariablePatterns } from "../utilities/variable-patterns";
-import { StrategyUtil } from "../utilities/strategy-util";
+import { FilterVariable } from "../../engine/filter-specs";
 
 interface IPosition {
   price: number;
@@ -60,7 +58,7 @@ export abstract class StrategyRun implements IStockScreenerJob {
       this.closeTime = CONSTANTS.END_TIME - period;
     }
     for (const screener of strategy.screeners) {
-      this.screeners.push(new Screener(screener));
+      this.screeners.push(new Screener(screener, period));
     }
     this.allFlags = this.getAllFlags();
     this.positions = {};
@@ -84,52 +82,6 @@ export abstract class StrategyRun implements IStockScreenerJob {
     return [];
   }
 
-  getDefaultAdditionalPeriod(varName: string) {
-    if (varName.includes("mtsi")) {
-      return PeriodType.MINUTE;
-    }
-  }
-
-  getCrossPeriodVars(): Partial<IAllFilterData> {
-    const crossPeriodVars: Partial<IAllFilterData> = {};
-    Object.keys(this.vars).forEach((key) => {
-      if (VariablePatterns.vwap.test(key)) {
-        const periodType: PeriodType | undefined = StrategyUtil.isPeriodType(
-          parseInt(key.substring(4)),
-        )
-          ? parseInt(key.substring(4))
-          : undefined;
-        if (periodType) {
-          crossPeriodVars[periodType] = {
-            vwapNumeratorCumulative: {},
-            vwapDenominatorCumulative: {},
-          };
-        }
-      }
-    });
-    return crossPeriodVars;
-  }
-
-  getAdditionalPeriods(): PeriodType[] {
-    const variables = this.getAllVariables();
-    const periods = new Array<PeriodType>();
-    for (const variable of variables) {
-      if (VariablePatterns.vwap.test(variable)) {
-        const periodType: PeriodType | undefined = StrategyUtil.isPeriodType(
-          parseInt(variable.substring(4)),
-        )
-          ? parseInt(variable.substring(4))
-          : undefined;
-        if (periodType) {
-          periods.push(periodType);
-        }
-      }
-    }
-
-    const uniquePeriods = Array.from(new Set(periods));
-    return uniquePeriods;
-  }
-
   getStrategy() {
     return this.strategy;
   }
@@ -142,29 +94,30 @@ export abstract class StrategyRun implements IStockScreenerJob {
     this.positions = positions;
   }
 
-  protected getStrategyName() {
-    return this.strategy.name;
+  /** The position of `screener` among the strategy's screeners (stored with a paper position). */
+  protected screenerIndex(screener: Screener) {
+    return this.screeners.indexOf(screener);
   }
 
-  canRun(minutesSinceStart: number) {
-    return (
-      (this.getPeriod() >= PeriodType.DAY &&
-        minutesSinceStart ==
-          CONSTANTS.DAY_PERIOD_TRADE_TIME - CONSTANTS.BEGIN_TIME) ||
-      minutesSinceStart % this.getPeriod() == 0
-    );
+  protected screenerAt(index: number): Screener | undefined {
+    return this.screeners[index];
+  }
+
+  protected getStrategyName() {
+    return this.strategy.name;
   }
 
   getPeriod() {
     return this.strategy.period;
   }
 
-  getAllVariables() {
-    const allVariables = [];
+  /** every variable this strategy's filters read, once each */
+  getVariables(): FilterVariable[] {
+    const byName = new Map<string, FilterVariable>();
     for (const screener of this.screeners) {
-      allVariables.push(...screener.getAllVariables());
+      for (const v of screener.getVariables()) byName.set(v.name, v);
     }
-    return allVariables;
+    return [...byName.values()];
   }
 
   closePositions(data: IStockData[], time: number) {
@@ -359,7 +312,11 @@ export abstract class StrategyRun implements IStockScreenerJob {
         }
       }
     }
+    // One entry per symbol per bar. Several screeners (or a long and a short) can signal the same
+    // symbol; the last one is held, as before, but it's entered (and paid for) once.
+    const lastEntry = new Map(enterActions.map((action) => [action.symbol, action]));
     for (const action of enterActions) {
+      if (lastEntry.get(action.symbol) !== action) continue;
       if (availablePurchases > 0) {
         availablePurchases--;
         if (action.orderType === "BUY") {
@@ -403,7 +360,7 @@ export abstract class StrategyRun implements IStockScreenerJob {
             (period * CONSTANTS.MILLIS_IN_MINUTE),
         ),
     };
-    this.getAllVariables().forEach((variable: string) => {
+    this.getVariables().forEach(({ name: variable }) => {
       Object.entries(positions).forEach(([stock]) => {
         const sVars = this.getVars();
         sVars[variable] ||= {};

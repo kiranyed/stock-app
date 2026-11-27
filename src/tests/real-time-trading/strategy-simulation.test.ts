@@ -1,16 +1,19 @@
 import { PeriodType } from "../../shared/constants";
 import { StrategySimulation } from "../../real-time-trading/strategy-simulation";
-import { EntryNotificationService } from "../../shared/services/entry-notification-service";
+import { AlertOutbox } from "../../notify/alert-outbox";
+import TransactionRepository from "../../shared/services/repos/transaction-repository";
 import { TradeLogger } from "../../shared/utilities/trade-logger";
 import { IStrategy } from "../../types/strategy-types";
 import { Screener } from "../../shared/classes/screener";
 
 jest.mock("../../shared/utilities/trade-logger");
 jest.mock("../../shared/services/repos/transaction-repository");
-jest.mock("../../shared/services/entry-notification-service", () => ({
-  EntryNotificationService: {
-    sendEntryNotification: jest.fn(),
-  },
+jest.mock("../../shared/services/repos/paper-position-repository");
+jest.mock("../../providers/market-data", () => ({
+  marketData: () => ({ capabilities: { displayPrices: true } }),
+}));
+jest.mock("../../notify/alert-outbox", () => ({
+  AlertOutbox: { enqueue: jest.fn() },
 }));
 
 describe("StrategySimulation", () => {
@@ -40,8 +43,30 @@ describe("StrategySimulation", () => {
   describe("constructor", () => {
     it("should initialize with the correct properties", () => {
       expect(strategySimulation.TRADE_SIZE).toBe(1);
-      expect(strategySimulation.runId).toBe(0);
       expect(strategySimulation.id).toBe(0);
+    });
+  });
+
+  describe("closed trades", () => {
+    // run id 0 was recorded before, which the repository refuses, so no simulated trade was stored
+    it("are recorded under the run's id, long and short", () => {
+      const sim = strategySimulation as unknown as {
+        buy(a: typeof entryAction): void;
+        sell(a: { symbol: string; price: number; orderType: string; time: number }): void;
+        sellShort(a: typeof entryAction): void;
+        buyToCover(a: { symbol: string; price: number; orderType: string; time: number }): void;
+      };
+      strategySimulation.setId(42);
+      sim.buy(entryAction);
+      sim.sell({ symbol: "AAPL", price: 165, orderType: "SELL", time: 2 });
+      sim.sellShort({ ...entryAction, symbol: "TSLA", orderType: "SELL_SHORT" });
+      sim.buyToCover({ symbol: "TSLA", price: 135, orderType: "BUY_TO_COVER", time: 2 });
+
+      const calls = (TransactionRepository.recordTransactionSim as jest.Mock).mock.calls;
+      expect(calls.map(([symbol, , , percent, long, runId]) => [symbol, Math.round(percent), long, runId])).toEqual([
+        ["AAPL", 10, true, 42],
+        ["TSLA", 10, false, 42],
+      ]);
     });
   });
 
@@ -61,7 +86,7 @@ describe("StrategySimulation", () => {
 
       await flushPromises();
 
-      expect(EntryNotificationService.sendEntryNotification).not.toHaveBeenCalled();
+      expect(AlertOutbox.enqueue).not.toHaveBeenCalled();
     });
 
     it("should send notifications on buy when notifyOnEntry is enabled", async () => {
@@ -73,12 +98,12 @@ describe("StrategySimulation", () => {
 
       await flushPromises();
 
-      expect(EntryNotificationService.sendEntryNotification).toHaveBeenCalledWith({
-        orderType: "BUY",
-        price: 150,
-        strategyName: "Test Strategy",
-        symbol: "AAPL",
-        time: 1,
+      expect(AlertOutbox.enqueue).toHaveBeenCalledWith({
+        kind: "entry",
+        runId: 0,
+        subject: "Test Strategy: entered long AAPL",
+        body: expect.stringMatching(/^Test Strategy: entered long AAPL at 150\.00 \(12\/31\/1969, 7:00:00 PM ET\)$/),
+        dedupKey: "entry:0:AAPL:BUY:1",
       });
     });
 
@@ -95,31 +120,8 @@ describe("StrategySimulation", () => {
 
       await flushPromises();
 
-      expect(EntryNotificationService.sendEntryNotification).toHaveBeenCalledWith({
-        orderType: "SELL_SHORT",
-        price: 150,
-        strategyName: "Test Strategy",
-        symbol: "TSLA",
-        time: 1,
-      });
-    });
-
-    it("should log notification failures without blocking entry behavior", async () => {
-      (EntryNotificationService.sendEntryNotification as jest.Mock).mockRejectedValueOnce(
-        new Error("boom"),
-      );
-      strategySimulation = new StrategySimulation(strategy, {
-        notifyOnEntry: true,
-      });
-
-      (strategySimulation as unknown as { buy: (action: typeof entryAction) => void }).buy(entryAction);
-
-      await flushPromises();
-
-      expect((strategySimulation as unknown as { positions: Record<string, unknown> }).positions.AAPL).toBeTruthy();
-      expect(TradeLogger.logToStrategy).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to send entry notification for AAPL"),
-        "Run0",
+      expect(AlertOutbox.enqueue).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: "Test Strategy: entered short TSLA", dedupKey: "entry:0:TSLA:SELL_SHORT:1" }),
       );
     });
   });

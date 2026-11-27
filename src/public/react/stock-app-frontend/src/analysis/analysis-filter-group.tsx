@@ -1,6 +1,6 @@
 import { Button } from "primereact/button";
 import * as React from "react";
-import { IFilter } from "../shared/types";
+import { IDropDownItem, IFilter } from "../shared/types";
 import { Filter } from "../real-time-trading/filter-group/filter";
 
 import "./analysis-filter-group.scss";
@@ -10,6 +10,8 @@ interface IProps {
   callback: (filter: IFilter, index: number) => void;
   removeFilter: (index: number) => void;
   dataFilters?: boolean;
+  /** Variables to offer; defaults to everything the engine computes */
+  variableOptions?: IDropDownItem[];
 }
 
 export function AnalysisFilterGroup(props: IProps) {
@@ -39,6 +41,7 @@ export function AnalysisFilterGroup(props: IProps) {
             index={i}
             dataFilter={Boolean(props.dataFilters)}
             makeChange={makeChange}
+            variableOptions={props.variableOptions}
           />
         </div>
       ))}

@@ -1,6 +1,5 @@
 import { Request } from "express";
 import {
-  accountTypeCheck,
   checkAndGetUserId,
   getUserIdFromRequest,
   userIdCheck,
@@ -15,42 +14,10 @@ import {
   ALL_OPERATORS,
 } from "../../middleware/shared-funcs";
 import Error400 from "../../errors/error-400";
-import { AccountType } from "../../shared/enums";
 import { AuthenticatedRequest } from "../../types/middleware-types";
 import { IFilter } from "../../types/strategy-types";
 
-jest.mock("../../shared/utilities/strategy-util", () => ({
-  StrategyUtil: {
-    isMtsiFilter: jest.fn(() => false),
-  },
-}));
-
-import { StrategyUtil } from "../../shared/utilities/strategy-util";
-
 describe("shared-funcs", () => {
-  describe("accountTypeCheck", () => {
-    it("should pass for valid REGULAR account type", () => {
-      expect(() => accountTypeCheck(AccountType.REGULAR)).not.toThrow();
-    });
-
-    it("should pass for valid TRADING account type", () => {
-      expect(() => accountTypeCheck(AccountType.TRADING)).not.toThrow();
-    });
-
-    it("should throw Error400 for invalid account type", () => {
-      expect(() => accountTypeCheck("invalid")).toThrow(Error400);
-      expect(() => accountTypeCheck("invalid")).toThrow(
-        "accountType must be either 'regular' or 'trading'",
-      );
-    });
-
-    it("should throw Error400 for non-string values", () => {
-      expect(() => accountTypeCheck(123)).toThrow(Error400);
-      expect(() => accountTypeCheck(null)).toThrow(Error400);
-      expect(() => accountTypeCheck(undefined)).toThrow(Error400);
-    });
-  });
-
   describe("userIdCheck", () => {
     it("should pass for valid user-id in headers", () => {
       const req = {
@@ -280,43 +247,6 @@ describe("shared-funcs", () => {
       expect(() => validateFilter(filter)).toThrow(Error400);
       expect(() => validateFilter(filter)).toThrow(
         /timeAgo must be an integer/,
-      );
-    });
-
-    it("should validate percentchange filter with mtsi properties when isMtsiFilter returns true", () => {
-      (StrategyUtil.isMtsiFilter as unknown as jest.Mock).mockReturnValueOnce(
-        true,
-      );
-
-      const filter = {
-        varName: "percentchange",
-        operator: ">",
-        compareVal: "5",
-        timeAgo: "10",
-        emaPeriod1: "12",
-        emaPeriod2: "26",
-        vwapPeriod: "1440",
-      };
-      expect(() => validateFilter(filter)).not.toThrow();
-    });
-
-    it("should throw Error400 for mtsi percentchange filter missing EMA periods", () => {
-      (StrategyUtil.isMtsiFilter as unknown as jest.Mock).mockReturnValue(true);
-
-      const filter = {
-        varName: "percentchange",
-        operator: ">",
-        compareVal: "5",
-        timeAgo: "10",
-      };
-
-      expect(() => validateFilter(filter)).toThrow(
-        new Error400("Must fill in the EMA periods and VWAP period"),
-      );
-
-      // Reset mock back to default
-      (StrategyUtil.isMtsiFilter as unknown as jest.Mock).mockReturnValue(
-        false,
       );
     });
 

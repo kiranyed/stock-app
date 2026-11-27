@@ -1,5 +1,4 @@
-import { ScreenerJobType, StrategyType } from "../shared/constants";
-import { RealMoneyStrategy } from "../real-time-trading/real-money-strategy";
+import { ScreenerJobType } from "../shared/constants";
 import {
   IStrategySimulationOptions,
   StrategySimulation,
@@ -11,23 +10,11 @@ export class LiveJobFactory {
   static createLiveJobInstance(
     type: ScreenerJobType,
     strategy: IStrategy,
-    strategyType?: StrategyType,
     simulationOptions?: IStrategySimulationOptions,
   ): ILiveStockScreenerJob {
-    //TODO implement analysis live
-    // if (type === ScreenerJobType.ANALYSIS) {
-    //     return new AnalysisLive();
-    // } else
-    if (type === ScreenerJobType.STRATEGY) {
-      if (strategyType === StrategyType.REAL) {
-        return new RealMoneyStrategy(strategy);
-      } else if (simulationOptions) {
-        return new StrategySimulation(strategy, simulationOptions);
-      } else {
-        return new StrategySimulation(strategy);
-      }
-    } else {
+    if (type !== ScreenerJobType.STRATEGY) {
       throw new Error("Invalid job type in createLiveJobInstance");
     }
+    return simulationOptions ? new StrategySimulation(strategy, simulationOptions) : new StrategySimulation(strategy);
   }
 }

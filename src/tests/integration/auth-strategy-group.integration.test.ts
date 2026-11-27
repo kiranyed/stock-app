@@ -7,7 +7,7 @@ import { IStockGroup } from "../../types/entity-types";
 import { ICandle } from "../../types/back-test-types";
 import StrategyRepository from "../../shared/services/repos/strategy-repository";
 import StockGroupRepository from "../../shared/services/repos/stock-group-repository";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabAuth } from "../../providers/schwab/schwab-auth";
 import { DatabaseAPI } from "../../shared/services/db-api";
 import AppServer from "../../startup/app-server";
 
@@ -154,10 +154,10 @@ describe("Integration - Auth/Strategy/Group", () => {
     dotenv.config();
     const appServer = new AppServer();
     agent = supertest.agent(appServer.getExpressInstance());
-    await SchwabAPI.initialize();
+    await SchwabAuth.initialize();
     await DatabaseAPI.createConnection();
     await DatabaseAPI.startTransaction();
-  });
+  }, 60000);
 
   it("registers and logs in", async () => {
     const res = await agent.post("/user/register").send({ username, password });
@@ -234,7 +234,10 @@ describe("Integration - Auth/Strategy/Group", () => {
   });
 
   afterAll(async () => {
-    await DatabaseAPI.rollbackTransaction();
-    await DatabaseAPI.closeConnection();
+    try {
+      await DatabaseAPI.rollbackTransaction();
+    } finally {
+      await DatabaseAPI.closeConnection();
+    }
   });
 });

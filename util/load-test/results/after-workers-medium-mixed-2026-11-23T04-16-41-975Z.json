@@ -1,0 +1,305 @@
+{
+  "label": "after-workers",
+  "at": "2026-11-23T04:16:41.975Z",
+  "base": "http://localhost:3101",
+  "profile": {
+    "name": "medium",
+    "period": 30,
+    "symbols": 25,
+    "startTime": 1787198400000,
+    "endTime": 1795237140000
+  },
+  "mix": "mixed",
+  "thinkMs": 1000,
+  "probeMs": 250,
+  "node": "v20.19.0",
+  "setup": {
+    "POST /user/register": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 205,
+      "p95": 295,
+      "p99": 295,
+      "max": 295
+    },
+    "POST /user/login": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 265,
+      "p95": 271,
+      "p99": 271,
+      "max": 271
+    },
+    "POST /api/group": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 10,
+      "p95": 10,
+      "p99": 10,
+      "max": 10
+    },
+    "POST /api/strategy": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 6,
+      "p95": 7,
+      "p99": 7,
+      "max": 7
+    },
+    "GET /api/group/all (check id)": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 5,
+      "p95": 7,
+      "p99": 7,
+      "max": 7
+    }
+  },
+  "levels": [
+    {
+      "users": 1,
+      "seconds": 60.8,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 242,
+          "perSecond": 3.98,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 6
+        },
+        "GET /api/strategy/all": {
+          "count": 22,
+          "perSecond": 0.36,
+          "errors": {},
+          "p50": 4,
+          "p95": 4,
+          "p99": 5,
+          "max": 5
+        },
+        "POST /api/strategy": {
+          "count": 17,
+          "perSecond": 0.28,
+          "errors": {},
+          "p50": 5,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "DELETE /api/strategy/:id": {
+          "count": 17,
+          "perSecond": 0.28,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 5
+        },
+        "PATCH /api/run/back-test": {
+          "count": 8,
+          "perSecond": 0.13,
+          "errors": {},
+          "p50": 361,
+          "p95": 420,
+          "p99": 420,
+          "max": 420
+        },
+        "GET /api/group/all": {
+          "count": 8,
+          "perSecond": 0.13,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 5
+        }
+      }
+    },
+    {
+      "users": 2,
+      "seconds": 61.1,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 243,
+          "perSecond": 3.98,
+          "errors": {},
+          "p50": 4,
+          "p95": 4,
+          "p99": 5,
+          "max": 9
+        },
+        "GET /api/strategy/all": {
+          "count": 42,
+          "perSecond": 0.69,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 5
+        },
+        "POST /api/strategy": {
+          "count": 21,
+          "perSecond": 0.34,
+          "errors": {},
+          "p50": 5,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "DELETE /api/strategy/:id": {
+          "count": 21,
+          "perSecond": 0.34,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 5
+        },
+        "GET /api/group/all": {
+          "count": 18,
+          "perSecond": 0.29,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 5,
+          "max": 5
+        },
+        "PATCH /api/run/back-test": {
+          "count": 26,
+          "perSecond": 0.43,
+          "errors": {},
+          "p50": 349,
+          "p95": 421,
+          "p99": 429,
+          "max": 429
+        }
+      }
+    },
+    {
+      "users": 5,
+      "seconds": 61,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 243,
+          "perSecond": 3.98,
+          "errors": {},
+          "p50": 4,
+          "p95": 4,
+          "p99": 5,
+          "max": 8
+        },
+        "GET /api/group/all": {
+          "count": 51,
+          "perSecond": 0.84,
+          "errors": {},
+          "p50": 3,
+          "p95": 4,
+          "p99": 4,
+          "max": 4
+        },
+        "GET /api/strategy/all": {
+          "count": 114,
+          "perSecond": 1.87,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 6,
+          "max": 9
+        },
+        "POST /api/strategy": {
+          "count": 72,
+          "perSecond": 1.18,
+          "errors": {},
+          "p50": 5,
+          "p95": 6,
+          "p99": 8,
+          "max": 8
+        },
+        "DELETE /api/strategy/:id": {
+          "count": 72,
+          "perSecond": 1.18,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 7,
+          "max": 7
+        },
+        "PATCH /api/run/back-test": {
+          "count": 43,
+          "perSecond": 0.7,
+          "errors": {},
+          "p50": 348,
+          "p95": 429,
+          "p99": 445,
+          "max": 445
+        }
+      }
+    },
+    {
+      "users": 10,
+      "seconds": 61.8,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 246,
+          "perSecond": 3.98,
+          "errors": {},
+          "p50": 3,
+          "p95": 4,
+          "p99": 7,
+          "max": 18
+        },
+        "GET /api/strategy/all": {
+          "count": 199,
+          "perSecond": 3.22,
+          "errors": {},
+          "p50": 3,
+          "p95": 4,
+          "p99": 6,
+          "max": 6
+        },
+        "GET /api/group/all": {
+          "count": 133,
+          "perSecond": 2.15,
+          "errors": {},
+          "p50": 3,
+          "p95": 4,
+          "p99": 6,
+          "max": 8
+        },
+        "PATCH /api/run/back-test": {
+          "count": 134,
+          "perSecond": 2.17,
+          "errors": {},
+          "p50": 351,
+          "p95": 433,
+          "p99": 477,
+          "max": 478
+        },
+        "POST /api/strategy": {
+          "count": 82,
+          "perSecond": 1.33,
+          "errors": {},
+          "p50": 4,
+          "p95": 5,
+          "p99": 7,
+          "max": 7
+        },
+        "DELETE /api/strategy/:id": {
+          "count": 82,
+          "perSecond": 1.33,
+          "errors": {},
+          "p50": 4,
+          "p95": 4,
+          "p99": 5,
+          "max": 5
+        }
+      }
+    }
+  ]
+}

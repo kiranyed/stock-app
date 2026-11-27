@@ -12,9 +12,10 @@ import runRouter from "./run-router";
 import strategyRouter from "./strategy-router";
 import analysisRouter from "./analysis-router";
 import transactionRouter from "./transaction-router";
-import tradeRouter from "./trade-router";
 import groupRouter from "./group-router";
 import utilRouter from "./util-router";
+import schwabRouter from "./schwab-router";
+import settingsRouter from "./settings-router";
 
 const router = Router();
 
@@ -149,8 +150,9 @@ router.use("/strategy", strategyRouter);
 router.use("/analysis", analysisRouter);
 router.use("/run", runRouter);
 router.use("/transaction", transactionRouter);
-router.use("/trade", tradeRouter);
 router.use("/util", utilRouter);
+router.use("/schwab", schwabRouter);
+router.use("/settings", settingsRouter);
 router.use(errorCatcher);
 router.use(errorMiddleware);
 export default router;

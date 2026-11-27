@@ -5,7 +5,7 @@ import { CONSTANTS } from "../shared/constants";
 import { DatabaseAPI } from "../shared/services/db-api";
 import { EarningsUtil } from "../shared/utilities/earnings-util";
 import { StockTradeUtil } from "../shared/utilities/stock-trade";
-import { SchwabAPI } from "../shared/services/trading-api";
+import { SchwabClient } from "../providers/schwab/schwab-client";
 import Error400 from "../errors/error-400";
 
 const router = express.Router();
@@ -91,7 +91,7 @@ const getQuotes = async (
       new Set(symbols.flatMap((symbol) => buildSymbolCandidates(symbol))),
     );
 
-    const quoteData = await SchwabAPI.getStockDataMultiple(symbolsToQuery.join(","));
+    const quoteData = await SchwabClient.getQuotes(symbolsToQuery.join(","));
     const quotes = symbols.reduce<Record<string, {
       requestedSymbol: string;
       symbol: string;
@@ -185,7 +185,7 @@ const storeHistory = async (
     try {
       const slicedArr = arr.slice(index, index + 50);
       const promises = slicedArr.map((item) =>
-        SchwabAPI.getHistoryWithBounds(
+        SchwabClient.getPriceHistory(
           item,
           periodType,
           frequencyType,

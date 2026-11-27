@@ -3,7 +3,6 @@ import { CONSTANTS, PeriodType } from "../../../shared/constants";
 import { IGain } from "../../../types/strategy-types";
 import { IGainTotal } from "../../../types/back-test-types";
 
-jest.mock("../../../shared/services/trading-api");
 jest.mock("../../../shared/utilities/time-util", () => ({
   getOffset: jest.fn().mockReturnValue(-300),
 }));

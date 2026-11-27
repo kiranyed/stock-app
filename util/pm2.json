@@ -11,17 +11,6 @@
                 "ENV": "prod",
                 "PORT": 3001
             }
-        },
-        {
-            "name": "set-access-token",
-            "exec_mode": "fork",
-            "instances": 1,
-            "script": "./util/set-access-token.mjs",
-            "interpreter": "node",
-            "env": {
-                "ENV": "prod",
-                "PORT": 2000
-            }
         }
     ]
 }

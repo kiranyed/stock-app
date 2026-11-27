@@ -1,42 +1,30 @@
-import { IFilter, IMTSIFilter } from "../../shared/types";
-
-const isMtsiFilter = (filter: IFilter): filter is IMTSIFilter => {
-  return filter.varName.includes("mtsi");
-};
+import { IFilter } from "../../shared/types";
+import { missingParams } from "./filter-variables";
 
 export const FilterGroupUtil = {
+  /** The first problem with the filters, or "" if the engine will accept them. */
   validate: function (filters: IFilter[]) {
-    let message = "";
     for (const filter of filters) {
       if (
         !filter.varName ||
         !filter.operator ||
         (!filter.compareVal && !filter.compareVar)
       ) {
-        message = "Must fill in the variable name, operator, and compare value";
-        break;
+        return "Must fill in the variable name, operator, and compare value";
       }
-      if (filter.varName) {
-        if (filter.varName.indexOf("percentchange") > -1) {
-          if (!filter.timeAgo) {
-            message = "Must fill in the time ago value";
-            break;
-          }
-        }
-
-        if (isMtsiFilter(filter)) {
-          if (!filter.emaPeriod1 || !filter.emaPeriod2 || !filter.vwapPeriod) {
-            message = "Must fill in the EMA periods and VWAP period";
-            break;
-          }
-        }
+      const missing = missingParams(filter, filter.varName);
+      if (missing.length) {
+        return `${filter.varName}: fill in ${missing.join(", ")}`;
       }
-
-      if (!parseFloat(filter.compareVal) && !filter.compareVar) {
-        message = "Must fill in a valid compare value";
-        break;
+      if (filter.compareVar) {
+        const missingCompare = missingParams(filter, filter.compareVar, true);
+        if (missingCompare.length) {
+          return `${filter.compareVar} (compare): fill in ${missingCompare.join(", ")}`;
+        }
+      } else if (!Number.isFinite(parseFloat(filter.compareVal))) {
+        return "Must fill in a valid compare value";
       }
     }
-    return message;
+    return "";
   },
 };

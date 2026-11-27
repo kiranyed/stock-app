@@ -1,9 +1,7 @@
 import {
   ILiveStockScreenerJob,
-  IAllStockNames,
   IStockScreenerJob,
-  IAllMemory,
-  IInitializedJobData,
+  IAllStockNames,
   IStockData,
 } from "../../types/data-processing-types";
 import { IStockGroup } from "../../types/entity-types";
@@ -12,15 +10,15 @@ import MasterJob from "./master-job";
 import { DataRetriever } from "../../run/data-retriever";
 import { CONSTANTS, PeriodType } from "../constants";
 import { StockTradeUtil } from "../utilities/stock-trade";
-import { StrategyUtil } from "../utilities/strategy-util";
-import { initMemories } from "../utilities/run-util";
-import { DataHandler } from "../../run/data-handler";
-import { SchwabAPI } from "../services/trading-api";
+import { BarInput, IndicatorEngine } from "../../engine/engine";
+import { QuoteBars, duePeriods } from "../../engine/bars";
 
 export class LiveMasterJob extends MasterJob {
   jobs: ILiveStockScreenerJob[] = new Array<ILiveStockScreenerJob>();
   pausedJobs: ILiveStockScreenerJob[] = new Array<ILiveStockScreenerJob>();
-  protected allMemories: IAllMemory = initMemories();
+  private quoteBars = new QuoteBars();
+  /** Jobs whose async run (real money) hasn't settled yet. */
+  private inFlight = new Set<IStockScreenerJob>();
 
   constructor(jobs: ILiveStockScreenerJob[], group: IStockGroup) {
     super(jobs, group);
@@ -28,201 +26,101 @@ export class LiveMasterJob extends MasterJob {
   }
 
   isInitialized() {
-    return this.jobs.length > 0;
+    return this.jobs.length + this.pausedJobs.length > 0;
   }
 
-  private buildInitializedSlice(newJobs: IStockScreenerJob[]): IInitializedJobData {
-    const [newNames, newFilterData, newMemories] =
-      this.getNewInitializedData(newJobs);
-
-    return {
-      newNames,
-      newFilterData,
-      newMemories,
-    };
-  }
-
-  private expandMemorySpace(
-    period: PeriodType,
-    memoryType: string,
-    symbol: string,
-    nextMemory: { space: number; list: number[]; lastTime: number },
+  /**
+   * Start running `jobs` on `group`'s symbols, and hold `paused` until they're resumed.
+   * Indicators they add start from `warmed` (an engine HistoricalWarmupService replayed
+   * history through); indicators already running live keep their state.
+   */
+  addJobs(
+    jobs: ILiveStockScreenerJob[],
+    group: IStockGroup,
+    warmed?: IndicatorEngine,
+    paused: ILiveStockScreenerJob[] = [],
   ) {
-    const currentMemory = this.allMemories[period][memoryType][symbol];
-    if (!currentMemory || nextMemory.space <= currentMemory.space) {
-      return;
-    }
-
-    const additionalSpace = nextMemory.space - currentMemory.space;
-    currentMemory.space = nextMemory.space;
-    currentMemory.list = [
-      ...new Array<number>(additionalSpace).fill(NaN),
-      ...currentMemory.list,
-    ];
+    const created = this.register([...jobs, ...paused], group.symbols);
+    if (warmed) this.engine.copyStateFrom(warmed, created);
+    this.jobs.push(...jobs);
+    this.pausedJobs.push(...paused);
   }
 
-  mergeInitializedSlice({
-    newNames,
-    newFilterData,
-    newMemories,
-  }: IInitializedJobData) {
-
-    CONSTANTS.PERIODS.forEach((period) => {
-      if (newNames[period]) {
-        newNames[period].forEach((name) => {
-          if (this.allNames[period]) {
-            if (!this.allNames[period].includes(name)) {
-              this.allNames[period].push(name);
-            }
-          }
-        });
-      }
-
-      // Merge filter data
-      if (!this.allVars[period]) {
-        this.allVars[period] = {};
-      }
-      Object.keys(newFilterData[period] || {}).forEach((symbol) => {
-        if (this.allVars[period]) {
-          if (!this.allVars[period][symbol]) {
-            if (newFilterData[period]) {
-              this.allVars[period][symbol] = newFilterData[period][symbol];
-            }
-          }
-        }
-      });
-
-
-      // Merge memories
-      for (const memoryType of Object.keys(newMemories[period] || {})) {
-        for (const symbol of Object.keys(newMemories[period][memoryType])) {
-          const nextMemory = newMemories[period][memoryType][symbol];
-
-          if (!this.allMemories[period][memoryType]) {
-            this.allMemories[period][memoryType] = newMemories[period][memoryType];
-            continue;
-          }
-
-          if (!this.allMemories[period][memoryType][symbol]) {
-            this.allMemories[period][memoryType][symbol] = nextMemory;
-            continue;
-          }
-
-          this.expandMemorySpace(period, memoryType, symbol, nextMemory);
-        }
-      }
-    });
-  }
-
-  prepare(newJobs: IStockScreenerJob[]) {
-    return this.buildInitializedSlice(newJobs);
-  }
-
+  /** Feed one set of quote snapshots (all taken at the same minute) to the engine. */
   handleNewData(data: IStockData[]): void {
     const time = data[0].datetime;
-    const timePeriods = StrategyUtil.getAllTimePeriods(this.jobs);
-    const minutesSinceStart =
-      StockTradeUtil.getMinutesInDayEastCoast(new Date(time)) -
-      CONSTANTS.BEGIN_TIME;
-    const timePeriodsToScreen = timePeriods.filter(
-      (period) => minutesSinceStart % period === 0,
-    );
-    DataHandler.adjustMemory(this.allMemories, data, timePeriodsToScreen);
-    DataHandler.processData(
-      data,
-      this.jobs,
-      data[0].datetime,
-      timePeriodsToScreen,
-      this.allVars,
-      this.allMemories,
-      this.allHistograms,
-    );
+    const bars: Partial<Record<PeriodType, BarInput[]>> = {};
+    for (const period of duePeriods(time, this.periods())) {
+      bars[period] = this.quoteBars.toBars(period, data, new Set(this.symbolsFor(period)));
+    }
+    this.engine.onBars(time, bars);
+    for (const job of this.dueJobs(time)) this.publish(job);
   }
 
-  addJobs(jobs: ILiveStockScreenerJob[]) {
-    this.jobs.push(...jobs);
-  }
-
-  getData(periods: PeriodType[], names: IAllStockNames) {
+  getData(periods: PeriodType[], names: Partial<IAllStockNames>) {
     return DataRetriever.getData(periods, names);
   }
 
-  async run() {
-    await SchwabAPI.testAccessToken();
-    const time = Date.now();
-    const eastCoastMinute = StockTradeUtil.getMinutesInDayEastCoast(
-      new Date(time),
-    );
-    const timePeriods = StrategyUtil.getAllTimePeriods(this.jobs);
-    const minutesSinceStart =
-      eastCoastMinute - CONSTANTS.BEGIN_TIME;
-    const timePeriodsToScreen = timePeriods.filter(
-      (period) => period < PeriodType.DAY && minutesSinceStart % period === 0,
-    );
+  /**
+   * One minute's tick. `time` is the start of the minute; quotes are stamped with it, so a bar
+   * gets the same time as in a back test however long the fetch takes.
+   */
+  async run(time?: number) {
+    if (time === undefined) {
+      const now = Date.now();
+      time = now - (now % CONSTANTS.MILLIS_IN_MINUTE);
+    }
+    const due = duePeriods(time, this.periods());
 
     console.debug("[LiveMasterJob] run tick", {
       isoTime: new Date(time).toISOString(),
-      eastCoastMinute,
-      minutesSinceStart,
+      eastCoastMinute: StockTradeUtil.getMinutesInDayEastCoast(new Date(time)),
       totalJobs: this.jobs.length,
-      configuredPeriods: timePeriods,
-      intradayPeriodsToScreen: timePeriodsToScreen,
+      periods: this.periods(),
+      due,
     });
 
-    // check if time = 3:59
-    if (
-      timePeriods.includes(PeriodType.DAY) &&
-      eastCoastMinute === CONSTANTS.DAY_PERIOD_TRADE_TIME
-    ) {
-      timePeriodsToScreen.push(PeriodType.DAY);
-      console.debug("[LiveMasterJob] day period trigger matched", {
-        isoTime: new Date(time).toISOString(),
-        eastCoastMinute,
-        dayTradeTime: CONSTANTS.DAY_PERIOD_TRADE_TIME,
-      });
-    }
-
-    console.debug("[LiveMasterJob] periods selected", {
-      isoTime: new Date(time).toISOString(),
-      timePeriodsToScreen,
-    });
-
-    if (timePeriodsToScreen.length === 0) {
-      console.debug("[LiveMasterJob] skipping run; no periods selected", {
-        isoTime: new Date(time).toISOString(),
-      });
+    if (due.length === 0) {
       return;
     }
 
-    console.debug("[LiveMasterJob] retrieving data", {
-      isoTime: new Date(time).toISOString(),
-      periods: timePeriodsToScreen,
-    });
+    const names: Partial<IAllStockNames> = {};
+    for (const period of due) names[period] = this.symbolsFor(period);
+    if (!due.some((period) => names[period]?.length)) return;
+    const fetched = await this.getData(due, names);
 
-    const data = await this.getData(timePeriodsToScreen, this.allNames);
-
-    console.debug("[LiveMasterJob] data retrieval completed", {
-      isoTime: new Date(time).toISOString(),
-      records: data?.length ?? 0,
-    });
-
-    if (!data || data.length === 0) {
-      console.log('no data retrieved for time ' + new Date(time).toString());
-      return;
+    if (!fetched || fetched.length === 0) {
+      // a failed tick, so the scheduler counts it
+      throw new Error(`no quotes for ${due.join(", ")}-minute bars at ${new Date(time).toISOString()}`);
     }
-
-    console.debug("[LiveMasterJob] processing data", {
-      isoTime: new Date(time).toISOString(),
-      records: data.length,
-    });
+    const data = fetched.map((d) => ({ ...d, datetime: time }));
 
     this.handleNewData(data);
     this.finishJob(data);
+  }
 
-    console.debug("[LiveMasterJob] run completed", {
-      isoTime: new Date(time).toISOString(),
-      records: data.length,
-    });
+  /**
+   * One strategy's error is logged and doesn't stop the others (PRODUCTION-READINESS.md §2.5).
+   * An asynchronous job whose previous tick hasn't finished skips this one rather than running
+   * twice at once (§2.6).
+   */
+  protected runJob(job: IStockScreenerJob, time: number, data: IStockData[]) {
+    const id = (job as ILiveStockScreenerJob).getId();
+    const at = new Date(time).toISOString();
+    if (this.inFlight.has(job)) {
+      console.warn(`[LiveMasterJob] run ${id} skipped ${at}: its previous minute is still running`);
+      return;
+    }
+    const failed = (err: unknown) => console.error(`[LiveMasterJob] run ${id} failed at ${at}`, err);
+    try {
+      const result: unknown = job.run(time, data);
+      if (result instanceof Promise) {
+        this.inFlight.add(job);
+        result.catch(failed).finally(() => this.inFlight.delete(job));
+      }
+    } catch (err) {
+      failed(err);
+    }
   }
 
   pause(id: number) {

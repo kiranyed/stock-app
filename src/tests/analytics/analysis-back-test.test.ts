@@ -3,7 +3,6 @@ import { PeriodType } from "../../shared/constants";
 import { IFilterGroup, IFilter } from "../../types/strategy-types";
 import { IData } from "../../types/general-types";
 import { IFilterData, IStockData } from "../../types/data-processing-types";
-import { StrategyUtil } from "../../shared/utilities/strategy-util";
 
 // Mock BackTestHelper
 
@@ -18,6 +17,7 @@ const mockFilterGroupInstance = {
     { varName: "percentchange", operator: ">", compareVal: "1" },
   ]),
   run: jest.fn(),
+  getVariables: jest.fn().mockReturnValue([{ name: "variable1" }, { name: "variable2" }]),
 };
 
 const mockBackTestHelper = {
@@ -25,7 +25,6 @@ const mockBackTestHelper = {
 };
 jest.mock("../../shared/classes/filter-group");
 
-jest.mock("../../shared/utilities/strategy-util");
 jest.mock("../../back-testing/back-test-helper", () => ({
   BackTestHelper: jest.fn().mockImplementation(() => mockBackTestHelper),
 }));
@@ -39,7 +38,6 @@ describe("AnalysisBackTest", () => {
   let period: PeriodType;
   let scenarioFilterGroup: IFilterGroup;
   let mockDataFilters: IFilter[];
-  const StrategyUtilMocked = jest.mocked(StrategyUtil);
 
   beforeEach(() => {
     period = PeriodType.DAY;
@@ -113,16 +111,11 @@ describe("AnalysisBackTest", () => {
     });
   });
 
-  describe("getAllVariables", () => {
-    it("should return all variables", () => {
-      const mockVariableNames = ["variable1", "variable2"];
-      StrategyUtilMocked.convertToVariableName
-        .mockReturnValueOnce("variable1")
-        .mockReturnValueOnce("variable2");
+  describe("getVariables", () => {
+    it("should return the scenario filters' variables", () => {
+      const result = analysisBackTest.getVariables().map((v) => v.name);
 
-      const result = analysisBackTest.getAllVariables();
-
-      expect(result).toEqual(mockVariableNames);
+      expect(result).toEqual(["variable1", "variable2"]);
     });
   });
 });

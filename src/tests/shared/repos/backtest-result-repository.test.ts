@@ -5,69 +5,54 @@ import { DatabaseAPI } from "../../../shared/services/db-api";
 
 jest.mock("../../../shared/services/db-api");
 
+const insert = DatabaseAPI.insert as jest.Mock;
+const query = DatabaseAPI.query as jest.Mock;
+
+beforeEach(() => jest.clearAllMocks());
+
 describe("BacktestResultRepository", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("inserts a backtest result with escaped params", async () => {
-    (DatabaseAPI.runQuery as jest.Mock).mockResolvedValue([]);
-
+  it("inserts a result with every value as a placeholder", async () => {
+    insert.mockResolvedValue(9);
     const payload: BacktestResultInsert = {
       strategyId: 1,
       groupId: 2,
-      strategyName: "strat",
+      strategyName: "strat'); drop table strategy; --",
       groupName: "group",
       startTime: 100,
       endTime: 200,
       period: 5,
-      direction: "long",
-      params: { m: 2, n: 3 },
+      params: { m: 2 },
       returnPct: 12.34,
       winRate: 55.6,
       trades: 10,
-      sharpe: 1.2,
       maxDrawdown: 4.5,
-      dataSource: "Schwab",
-      status: "SUCCESS",
-      runtimeMs: 1234,
       createdAt: 999,
     };
 
-    await BacktestResultRepository.insert(payload);
-
-    expect(DatabaseAPI.runQuery).toHaveBeenCalledTimes(1);
-    const sql = (DatabaseAPI.runQuery as jest.Mock).mock.calls[0][0] as string;
-    expect(sql).toContain("INSERT INTO backtest_result");
-    expect(sql).toContain("strat");
-    expect(sql).toContain("group");
-    expect(sql).toContain("Schwab");
-    expect(sql).toContain('\\"m\\":2');
-    expect(sql).toContain('\\"n\\":3');
+    await expect(BacktestResultRepository.insert(payload)).resolves.toBe(9);
+    const [sql, params] = insert.mock.calls[0];
+    expect(sql).not.toContain("drop table");
+    expect(sql.match(/\?/g)).toHaveLength(18);
+    expect(params).toEqual([
+      1, 2, payload.strategyName, "group", 100, 200, 5, null, '{"m":2}', 12.34, 55.6, 10, null, 4.5, null, "SUCCESS", null, 999,
+    ]);
   });
 
-  it("queries completed backtest results by group id", async () => {
-    (DatabaseAPI.runQuery as jest.Mock).mockResolvedValue([]);
-
-    await BacktestResultRepository.getCompletedByGroup(44);
-
-    expect(DatabaseAPI.runQuery).toHaveBeenCalledTimes(1);
-    const sql = (DatabaseAPI.runQuery as jest.Mock).mock.calls[0][0] as string;
-    expect(sql).toContain("FROM backtest_result");
-    expect(sql).toContain("group_id = 44");
-    expect(sql).toContain("status = 'SUCCESS'");
-    expect(sql).toContain("ORDER BY created_at DESC");
+  it("returns only the user's results for a group", async () => {
+    query.mockResolvedValue([]);
+    await BacktestResultRepository.getCompletedByGroup(7, 44);
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toMatch(/join strategy s on s.id = r.strategy_id/);
+    expect(sql).toMatch(/r.group_id = \? and s.user_id = \? and r.status = 'SUCCESS'/);
+    expect(sql).not.toMatch(/strategy_id in/);
+    expect(params).toEqual([44, 7]);
   });
 
-  it("queries completed backtest results by group id and strategy ids", async () => {
-    (DatabaseAPI.runQuery as jest.Mock).mockResolvedValue([]);
-
-    await BacktestResultRepository.getCompletedByGroup(44, [12, 14]);
-
-    expect(DatabaseAPI.runQuery).toHaveBeenCalledTimes(1);
-    const sql = (DatabaseAPI.runQuery as jest.Mock).mock.calls[0][0] as string;
-    expect(sql).toContain("group_id = 44");
-    expect(sql).toContain("strategy_id IN (12, 14)");
-    expect(sql).toContain("status = 'SUCCESS'");
+  it("filters by strategy ids when given", async () => {
+    query.mockResolvedValue([]);
+    await BacktestResultRepository.getCompletedByGroup(7, 44, [12, 14]);
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toMatch(/r.strategy_id in \(\?\)/);
+    expect(params).toEqual([44, 7, [12, 14]]);
   });
 });

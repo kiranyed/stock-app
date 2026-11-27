@@ -1,44 +1,16 @@
-import {
-  ILiveJobRunEntity,
-  Transaction,
-  TransactionEntity,
-} from "../../../types/entity-types";
+import { TransactionEntity } from "../../../types/entity-types";
 import { DatabaseAPI } from "../db-api";
 
+export type TransactionKind = "simulation";
+
+const TABLE: Record<TransactionKind, string> = { simulation: "transaction_sim" };
+
+/**
+ * `transaction_sim` / `transaction_real` rows: closed trades of live runs. A transaction belongs to
+ * whoever owns its run's strategy (run_id → live_job → strategy.user_id). Every value is a placeholder.
+ */
 export default class TransactionRepository {
-  static updateTransaction(transaction: Transaction, real = true) {
-    const tableName = real ? "transaction_real" : "transaction_sim";
-    return this.runQuery(
-      `update ${tableName} set quantity=${transaction.quantity} where id=${transaction.id}`,
-
-    );
-  }
-  private static runQuery<T = Transaction>(query: string) {
-    return DatabaseAPI.runQuery<T>(query);
-  }
-
-  /* insert a transaction from a simulation or real strategy into DB */
-  public static recordTransaction(
-    symbol: string,
-    datetime: number,
-    profit: number,
-    percent: number,
-    long: boolean,
-    runId: number,
-  ) {
-    if (runId === 0) {
-      throw new Error("runId not set");
-    }
-    const valueString = [symbol, datetime, profit, percent, long, runId]
-      .map((param) => (typeof param === "string" ? "'" + param + "'" : param))
-      .join(",");
-    const query =
-      "insert into transaction_real (symbol, datetime, net_gain, net_percent_gain, long, run_id) values (" +
-      valueString +
-      ")";
-    return this.runQuery<number>(query);
-  }
-
+  /** Records a simulated trade. Never rejects: see `record`. */
   public static recordTransactionSim(
     symbol: string,
     datetime: number,
@@ -47,56 +19,47 @@ export default class TransactionRepository {
     long: boolean,
     runId: number,
   ) {
-    if (runId === 0) {
-      throw new Error("runId not set");
-    }
-    const valueString = [symbol, datetime, profit, percent, long, runId]
-      .map((param) => (typeof param === "string" ? "'" + param + "'" : param))
-      .join(",");
-    const query =
-      "insert into transaction_sim (symbol, datetime, net_gain, net_percent_gain, long, run_id) values (" +
-      valueString +
-      ")";
-    return this.runQuery(query);
+    return this.record("simulation", symbol, datetime, profit, percent, long, runId);
   }
 
-  public static getTransactionsReal(runIds: string[], datetime?: number) {
-    let dt = 0;
-    if (datetime) {
-      dt = datetime;
-    }
-    const query =
-      "select run_id, symbol, datetime, net_percent_gain from transaction_real where run_id in (" +
-      runIds.join(",") +
-      ") and datetime > " +
-      dt;
-    return this.runQuery<TransactionEntity>(query);
-  }
-
-  public static getTransactionsSimulation(runIds: string[], datetime?: number) {
-    let dt = 0;
-    if (datetime) {
-      dt = datetime;
-    }
-    const query =
-      "select run_id, symbol, datetime, net_percent_gain from transaction_sim where run_id in (" +
-      runIds.join(",") +
-      ") and datetime > " +
-      dt;
-    return this.runQuery<TransactionEntity>(query);
-  }
-
-  public static getTransactionsForRun(runId: number) {
-    return this.runQuery(
-      "select net_percent_gain from transaction_sim where run_id=" + runId,
+  /** The user's transactions for `runIds` newer than `since`; other users' runs are left out. */
+  public static getOwnedTransactions(
+    kind: TransactionKind,
+    runIds: number[],
+    userId: number,
+    since = 0,
+  ): Promise<TransactionEntity[]> {
+    if (!runIds.length) return Promise.resolve([]);
+    return DatabaseAPI.query<TransactionEntity>(
+      `select t.run_id, t.symbol, t.datetime, t.net_gain, t.net_percent_gain, t.\`long\` from ${TABLE[kind]} t ` +
+        "join live_job j on j.id = t.run_id join strategy s on s.id = j.strategy_id " +
+        "where t.run_id in (?) and s.user_id = ? and t.datetime > ? order by t.datetime",
+      [runIds, userId, since],
     );
   }
 
-  public static getTotal(runRows: ILiveJobRunEntity[]) {
-    return this.runQuery<{ gainPercent: number; id: number }>(
-      "select SUM(net_percent_gain) as gainPercent, run_id from transaction_sim where run_id in (" +
-        runRows.map((row) => row.id).join(",") +
-        ")",
-    );
+  /**
+   * The trading loop calls the record methods without awaiting them, so a failure here must not
+   * become an unhandled rejection (Node exits on those). It is logged and the id is undefined.
+   */
+  private static async record(
+    kind: TransactionKind,
+    symbol: string,
+    datetime: number,
+    profit: number,
+    percent: number,
+    long: boolean,
+    runId: number,
+  ): Promise<number | undefined> {
+    try {
+      if (!runId) throw new Error("runId not set");
+      return await DatabaseAPI.insert(
+        `insert into ${TABLE[kind]} (symbol, datetime, net_gain, net_percent_gain, \`long\`, run_id) values (?, ?, ?, ?, ?, ?)`,
+        [symbol, datetime, profit, percent, long, runId],
+      );
+    } catch (err) {
+      console.error(`Failed to record ${kind} transaction for run ${runId} (${symbol}):`, err);
+      return undefined;
+    }
   }
 }

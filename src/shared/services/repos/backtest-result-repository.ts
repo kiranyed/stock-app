@@ -1,4 +1,3 @@
-import mysql from "mysql2";
 import { DatabaseAPI } from "../db-api";
 
 export interface BacktestResultInsert {
@@ -36,88 +35,49 @@ export interface BacktestResultRow {
   createdAt: number;
 }
 
+/** `backtest_result` rows. Like runs, a result belongs to whoever owns its strategy. */
 export class BacktestResultRepository {
-  static async insert(result: BacktestResultInsert) {
-    if (!DatabaseAPI.connectionExists()) {
-      await DatabaseAPI.createConnection();
-    }
-
-    const {
-      strategyId,
-      groupId,
-      strategyName,
-      groupName,
-      startTime,
-      endTime,
-      period,
-      direction,
-      params,
-      returnPct,
-      winRate,
-      trades,
-      sharpe,
-      dataSource,
-      status,
-      runtimeMs,
-      createdAt,
-    } = result;
-
-    const jsonParams = params ? mysql.escape(JSON.stringify(params)) : "NULL";
-
-    const query = `INSERT INTO backtest_result (
-      strategy_id, group_id, strategy_name, group_name, start_time, end_time, period, direction, params,
-      return_pct, win_rate, trades, sharpe, data_source, status, runtime_ms, created_at
-    ) VALUES (
-      ${mysql.escape(strategyId)},
-      ${mysql.escape(groupId)},
-      ${mysql.escape(strategyName ?? null)},
-      ${mysql.escape(groupName ?? null)},
-      ${mysql.escape(startTime)},
-      ${mysql.escape(endTime)},
-      ${mysql.escape(period ?? null)},
-      ${mysql.escape(direction ?? null)},
-      ${jsonParams},
-      ${mysql.escape(returnPct ?? null)},
-      ${mysql.escape(winRate ?? null)},
-      ${mysql.escape(trades ?? null)},
-      ${mysql.escape(sharpe ?? null)},
-      ${mysql.escape(dataSource ?? null)},
-      ${mysql.escape(status ?? "SUCCESS")},
-      ${mysql.escape(runtimeMs ?? null)},
-      ${mysql.escape(createdAt)}
-    )`;
-
-    return DatabaseAPI.runQuery(query);
+  /** Saves one result; returns its id. */
+  static insert(result: BacktestResultInsert): Promise<number> {
+    const r = result;
+    return DatabaseAPI.insert(
+      "insert into backtest_result (strategy_id, group_id, strategy_name, group_name, start_time, end_time, " +
+        "period, direction, params, return_pct, win_rate, trades, sharpe, max_drawdown, data_source, status, " +
+        "runtime_ms, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        r.strategyId,
+        r.groupId,
+        r.strategyName ?? null,
+        r.groupName ?? null,
+        r.startTime,
+        r.endTime,
+        r.period ?? null,
+        r.direction ?? null,
+        r.params ? JSON.stringify(r.params) : null,
+        r.returnPct ?? null,
+        r.winRate ?? null,
+        r.trades ?? null,
+        r.sharpe ?? null,
+        r.maxDrawdown ?? null,
+        r.dataSource ?? null,
+        r.status ?? "SUCCESS",
+        r.runtimeMs ?? null,
+        r.createdAt,
+      ],
+    );
   }
 
-  static async getCompletedByGroup(groupId: number, strategyIds?: number[]) {
-    if (!DatabaseAPI.connectionExists()) {
-      await DatabaseAPI.createConnection();
-    }
-
-    const strategyFilter =
-      Array.isArray(strategyIds) && strategyIds.length
-        ? ` AND strategy_id IN (${strategyIds.map((id) => mysql.escape(id)).join(", ")})`
-        : "";
-
-    const query = `SELECT
-      id,
-      strategy_id AS strategyId,
-      group_id AS groupId,
-      strategy_name AS strategyName,
-      group_name AS groupName,
-      start_time AS startTime,
-      end_time AS endTime,
-      return_pct AS returnPct,
-      trades,
-      status,
-      created_at AS createdAt
-    FROM backtest_result
-    WHERE group_id = ${mysql.escape(groupId)}
-      AND status = 'SUCCESS'${strategyFilter}
-    ORDER BY created_at DESC`;
-
-    return DatabaseAPI.runQuery<BacktestResultRow>(query);
+  /** The user's successful results for a group, newest first, optionally for some strategies only. */
+  static getCompletedByGroup(userId: number, groupId: number, strategyIds?: number[]): Promise<BacktestResultRow[]> {
+    const byStrategy = strategyIds?.length ? " and r.strategy_id in (?)" : "";
+    return DatabaseAPI.query<BacktestResultRow>(
+      "select r.id, r.strategy_id as strategyId, r.group_id as groupId, r.strategy_name as strategyName, " +
+        "r.group_name as groupName, r.start_time as startTime, r.end_time as endTime, r.return_pct as returnPct, " +
+        "r.trades, r.status, r.created_at as createdAt from backtest_result r " +
+        "join strategy s on s.id = r.strategy_id " +
+        `where r.group_id = ? and s.user_id = ? and r.status = 'SUCCESS'${byStrategy} order by r.created_at desc`,
+      strategyIds?.length ? [groupId, userId, strategyIds] : [groupId, userId],
+    );
   }
 }
 

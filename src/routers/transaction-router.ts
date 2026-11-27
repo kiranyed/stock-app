@@ -1,67 +1,33 @@
 import { Request, Router, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
-import { validateTransactionRequest } from "../middleware/transaction-middleware";
-import TransactionRepository from "../shared/services/repos/transaction-repository";
-import TransactionMapper from "../mappers/transaction-mapper";
+import Error400 from "../errors/error-400";
+import { requireUserId as userOf } from "../middleware/shared-funcs";
+import { parseIds, parseTimestamp } from "../services/parse";
+import { TransactionService } from "../services/transaction-service";
+import { TransactionKind } from "../shared/services/repos/transaction-repository";
 
-export interface IStrategyTransactionRequest extends Request {
-  query: {
-    [key: string]: string | string[];
-    runId: string | string[];
-    pingTime: string;
-  };
-}
 const router = Router();
 
-router.use(validateTransactionRequest);
-
-const getSimulationTransactions = async (
-  req: IStrategyTransactionRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { pingTime, runId } = req.query;
-  try {
-    const runIdArr = Array.isArray(runId) ? runId : [runId];
-    const simTransactionEntities =
-      await TransactionRepository.getTransactionsSimulation(
-        runIdArr,
-        parseInt(pingTime),
-      );
-    res.status(StatusCodes.OK).json({
-      simTransactions: simTransactionEntities.map((entity) =>
-        TransactionMapper.convertEntityToTransaction(entity),
-      ),
-    });
-  } catch (error) {
-    return next(error);
-  }
+/** `runId` (one or more) and `pingTime` (only transactions after it) from the query string. */
+const parseQuery = (req: Request) => {
+  const runIds = parseIds(req.query.runId, "runId");
+  if (!runIds.length) throw new Error400("must pass a runId or array of run ids");
+  return { runIds, since: parseTimestamp(req.query.pingTime, "pingTime") };
 };
 
-const getRealTransactions = async (
-  req: IStrategyTransactionRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { pingTime, runId } = req.query;
-  try {
-    const runIdArr = Array.isArray(runId) ? runId : [runId];
-    const transactionEntities = await TransactionRepository.getTransactionsReal(
-      runIdArr,
-      parseInt(pingTime),
-    );
-    res.status(StatusCodes.OK).json({
-      transactions: transactionEntities.map((entity) =>
-        TransactionMapper.convertEntityToTransaction(entity),
-      ),
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
+const list = (kind: TransactionKind, key: "simTransactions" | "transactions") =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { runIds, since } = parseQuery(req);
+      res.status(StatusCodes.OK).json({ [key]: await TransactionService.list(userOf(req), kind, runIds, since) });
+    } catch (error) {
+      next(error);
+    }
+  };
 
-// Apply middleware and register routes
+/** GET /api/transaction/simulation?runId=1&runId=2&pingTime=0 → { simTransactions } */
+const getSimulationTransactions = list("simulation", "simTransactions");
 router.get("/simulation", getSimulationTransactions);
-router.get("/real", getRealTransactions);
-export { getSimulationTransactions, getRealTransactions };
+
+export { getSimulationTransactions };
 export default router;

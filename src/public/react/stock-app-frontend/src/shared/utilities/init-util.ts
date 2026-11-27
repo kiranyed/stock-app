@@ -132,16 +132,22 @@ export class InitUtil {
       case "pricepercentchangepercentile":
         str += "Percent change percentile rank";
         break;
-      case "volumechange":
-        str += "Volume change since " + timeAgo! + " periods ago";
-        break;
       case "price":
         str += "Price";
+        break;
+      case "volume":
+        str += "Volume";
+        break;
+      case "macd":
+        str += "MACD line";
+        break;
+      case "macdsignalline":
+        str += "MACD signal line";
         break;
       case "priceema":
         str += `${timeAgo!}-period EMA of price`;
         break;
-      case "primesma":
+      case "pricesma":
         str += `${timeAgo!}-period SMA of price`;
         break;
       case "bollingerbands":
@@ -150,7 +156,7 @@ export class InitUtil {
       case "vwap":
         str += "VWAP";
         break;
-      case "volumeSma":
+      case "volumesma":
         str += `${timeAgo!}-period SMA of volume`;
         break;
       case "percentgain":

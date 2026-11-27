@@ -12,9 +12,13 @@ jest.mock("../../../shared/classes/screener", () => ({
   Screener: jest.fn().mockImplementation(() => ({
     runSellFilters: jest.fn().mockReturnValue(false),
     runBuyFilters: jest.fn().mockReturnValue(true),
-    getAllVariables: jest
+    getVariables: jest
       .fn()
-      .mockReturnValue(["percentchange3", "percentGain", "timeSinceEntry"]),
+      .mockReturnValue([
+        { name: "percentchange3", spec: { kind: "percentChange", bars: 3 } },
+        { name: "percentGain" },
+        { name: "timeSinceEntry" },
+      ]),
     hasFlags: jest.fn().mockReturnValue(false),
     hasBuySellFilters: jest.fn().mockReturnValue(true),
     hasShortCoverFilters: jest.fn().mockReturnValue(false),
@@ -67,9 +71,9 @@ describe("StrategyRun", () => {
     });
   });
 
-  describe("getAllVariables", () => {
+  describe("getVariables", () => {
     it("should return all variables", () => {
-      const result = strategyRun.getAllVariables();
+      const result = strategyRun.getVariables().map((v) => v.name);
       expect(result).toEqual([
         "percentchange3",
         "percentGain",
@@ -324,45 +328,6 @@ describe("StrategyRun", () => {
     it("should calculate the gain for a position", () => {
       const result = strategyRun.calculateGain(100, 105, true);
       expect(result).toBe(1.05);
-    });
-  });
-
-  describe("getCrossPeriodVars", () => {
-    it("should return empty object when no vwap variables exist", () => {
-      strategyRun.setVars({ percentchange3: { AAPL: 3.5 } });
-      const result = strategyRun.getCrossPeriodVars();
-      expect(result).toEqual({});
-    });
-
-    it("should extract vwap variables with valid period types", () => {
-      strategyRun.setVars({ vwap1: { AAPL: 100 }, vwap5: { AAPL: 200 } });
-      const result = strategyRun.getCrossPeriodVars();
-      expect(result[1]).toEqual({
-        vwapNumeratorCumulative: {},
-        vwapDenominatorCumulative: {},
-      });
-      expect(result[5]).toEqual({
-        vwapNumeratorCumulative: {},
-        vwapDenominatorCumulative: {},
-      });
-    });
-
-    it("should ignore vwap variables with invalid period types", () => {
-      strategyRun.setVars({ vwapABC: { AAPL: 100 }, vwap999: { AAPL: 200 } });
-      const result = strategyRun.getCrossPeriodVars();
-      expect(result).toEqual({});
-    });
-
-    it("should handle mixed vwap and non-vwap variables", () => {
-      strategyRun.setVars({
-        vwap60: { AAPL: 100 },
-        percentGain: { AAPL: 5 },
-        vwap5: { AAPL: 200 },
-      });
-      const result = strategyRun.getCrossPeriodVars();
-      expect(Object.keys(result)).toContain("60");
-      expect(Object.keys(result)).toContain("5");
-      expect(Object.keys(result).length).toBe(2);
     });
   });
 });

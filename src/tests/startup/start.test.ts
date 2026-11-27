@@ -1,5 +1,7 @@
 jest.mock("../../startup/app-server");
-jest.mock("../../shared/services/trading-api");
+jest.mock("../../providers/schwab/schwab-auth");
+jest.mock("../../notify/alert-outbox");
+jest.mock("../../run/back-test-pool");
 jest.mock("../../shared/services/db-api");
 jest.mock("dotenv");
 
@@ -16,9 +18,9 @@ describe("start.ts", () => {
     const { DatabaseAPI: MockDatabaseAPI } = jest.requireMock(
       "../../shared/services/db-api",
     ) as { DatabaseAPI: { createConnection: jest.Mock } };
-    const { SchwabAPI: MockSchwabAPI } = jest.requireMock(
-      "../../shared/services/trading-api",
-    ) as { SchwabAPI: { initialize: jest.Mock } };
+    const { SchwabAuth: MockSchwabAuth } = jest.requireMock(
+      "../../providers/schwab/schwab-auth",
+    ) as { SchwabAuth: { initialize: jest.Mock } };
     const mockDotenv = jest.requireMock("dotenv") as { config: jest.Mock };
 
     const mockStart = jest.fn();
@@ -26,14 +28,14 @@ describe("start.ts", () => {
       start: mockStart,
     }));
     MockDatabaseAPI.createConnection.mockResolvedValue(undefined);
-    MockSchwabAPI.initialize.mockResolvedValue(undefined);
-
+    MockSchwabAuth.initialize.mockResolvedValue(undefined);
     await import("../../startup/start");
     await Promise.resolve();
 
     expect(mockDotenv.config).toHaveBeenCalled();
     expect(MockDatabaseAPI.createConnection).toHaveBeenCalled();
-    expect(MockSchwabAPI.initialize).toHaveBeenCalled();
+    expect(MockSchwabAuth.initialize).toHaveBeenCalled();
+    expect(jest.requireMock("../../notify/alert-outbox").AlertOutbox.start).toHaveBeenCalled();
     expect(MockAppServer).toHaveBeenCalled();
     expect(mockStart).toHaveBeenCalledWith(3001);
   });

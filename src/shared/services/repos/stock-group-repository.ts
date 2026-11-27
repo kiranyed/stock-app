@@ -1,93 +1,95 @@
-import { IStockGroupEntity } from "../../../types/entity-types";
+import { IRunHistoryCount, IStockGroupEntity } from "../../../types/entity-types";
 import { DatabaseAPI } from "../db-api";
 
+/** `stock_group` rows. Every value goes through a placeholder. */
 export default class StockGroupRepository {
-  private static runQuery<T = IStockGroupEntity>(query: string) {
-    return DatabaseAPI.runQuery<T>(query);
-  }
-
   public static getGroups(ids: number[]) {
-    return this.runQuery(
-      `select * from stock_group where id in (${ids.join(",")})`,
-    );
-  }
-  public static getGroup(id: number) {
-    return this.runQuery(`select * from stock_group where id=${id}`);
+    if (!ids.length) return Promise.resolve([] as IStockGroupEntity[]);
+    return DatabaseAPI.query<IStockGroupEntity>("select * from stock_group where id in (?)", [ids]);
   }
 
-  public static getGroupByName(name: string, userId: number) {
-    return this.runQuery(
-      `select * from stock_group where user_id=${userId} and name='${name}'`,
-    );
+  public static getGroup(id: number) {
+    return DatabaseAPI.query<IStockGroupEntity>("select * from stock_group where id = ?", [id]);
   }
 
   public static getGroupById(id: number) {
-    return this.runQuery(`select * from stock_group where id=${id}`);
+    return this.getGroup(id);
+  }
+
+  /** The group if `userId` owns it; otherwise nothing. */
+  public static getOwnedGroup(id: number, userId: number) {
+    return DatabaseAPI.query<IStockGroupEntity>(
+      "select * from stock_group where id = ? and user_id = ?",
+      [id, userId],
+    );
+  }
+
+  public static getGroupByName(name: string, userId: number) {
+    return DatabaseAPI.query<IStockGroupEntity>(
+      "select * from stock_group where user_id = ? and name = ?",
+      [userId, name],
+    );
   }
 
   public static getAllStockGroups(userId: number) {
-    return this.runQuery(`select * from stock_group where user_id=${userId}`);
+    return DatabaseAPI.query<IStockGroupEntity>("select * from stock_group where user_id = ?", [userId]);
   }
 
   public static getAllStockGroupNames(userId: number) {
-    return this.runQuery(
-      `select id, name from stock_group where user_id=${userId}`,
+    return DatabaseAPI.query<IStockGroupEntity>(
+      "select id, name from stock_group where user_id = ?",
+      [userId],
     );
   }
 
-  public static createGroup(
-    name: string,
-    symbols: string[],
-    userId: number,
-  ): Promise<Record<number, Record<number, Record<string, number>>>> {
-    return this.runQuery(
-      "insert into stock_group (name, symbols, date_added, user_id) values ('" +
-        name +
-        "', '" +
-        JSON.stringify(symbols) +
-        "'," +
-        Date.now() +
-        "," +
-        userId +
-        ");  SELECT LAST_INSERT_ID();",
+  /** Inserts the group and returns its id. */
+  public static createGroup(name: string, symbols: string[], userId: number): Promise<number> {
+    return DatabaseAPI.insert(
+      "insert into stock_group (name, symbols, date_added, user_id) values (?, ?, ?, ?)",
+      [name, JSON.stringify(symbols), Date.now(), userId],
     );
   }
 
-  public static saveGroup(name: string, symbols: string[], id: number) {
-    return this.runQuery(
-      "update stock_group set name='" +
-        name +
-        "', symbols='" +
-        JSON.stringify(symbols) +
-        "' where id=" +
-        id,
+  /** Updates the group if `userId` owns it; returns how many rows matched (0 or 1). */
+  public static updateGroup(id: number, userId: number, name: string, symbols: string[]): Promise<number> {
+    return DatabaseAPI.modify(
+      "update stock_group set name = ?, symbols = ? where id = ? and user_id = ?",
+      [name, JSON.stringify(symbols), id, userId],
     );
   }
 
-  public static deleteGroup(id: string) {
-    return this.runQuery("delete from stock_group where id=" + id);
+  /** The ids among `ids` that `userId` owns. */
+  public static async getOwnedIds(ids: number[], userId: number): Promise<number[]> {
+    if (!ids.length) return [];
+    const rows = await DatabaseAPI.query<{ id: number }>(
+      "select id from stock_group where id in (?) and user_id = ?",
+      [ids, userId],
+    );
+    return rows.map((row) => row.id);
   }
 
-  public static deleteGroups(ids: string[]) {
-    const str = ids.reduce(
-      (prev, cur, idx) => (idx === 0 ? cur : prev + "," + cur),
-      "",
+  /** For each of `ids` that `userId` owns: how many runs and saved back-test results use it. */
+  public static getHistoryCounts(ids: number[], userId: number): Promise<IRunHistoryCount[]> {
+    if (!ids.length) return Promise.resolve([]);
+    return DatabaseAPI.query<IRunHistoryCount>(
+      "select g.id, g.name, " +
+        "(select count(*) from live_job j where j.group_id = g.id) as runs, " +
+        "(select count(*) from backtest_result b where b.group_id = g.id) as backtests " +
+        "from stock_group g where g.id in (?) and g.user_id = ?",
+      [ids, userId],
     );
-    return this.runQuery("delete from stock_group where id in (" + str + ")");
+  }
+
+  /** Deletes the groups `userId` owns among `ids`; returns how many were deleted. */
+  public static deleteGroups(ids: number[], userId: number): Promise<number> {
+    if (!ids.length) return Promise.resolve(0);
+    return DatabaseAPI.modify("delete from stock_group where id in (?) and user_id = ?", [ids, userId]);
   }
 
   public static getSymbolsFromGroup(group: string, userId: number) {
-    return this.runQuery<{ symbols: string }>(
-      "select symbols, id from stock_group where name='" +
-        group +
-        "' and user_id=" +
-        userId,
-    );
-  }
-
-  public static getSymbolsFromGroupById(id: number) {
-    return this.runQuery<{ symbols: string }>(
-      "select symbols from stock_group where id=" + id,
+    return DatabaseAPI.query<{ symbols: string; id: number }>(
+      "select symbols, id from stock_group where name = ? and user_id = ?",
+      [group, userId],
     );
   }
 }

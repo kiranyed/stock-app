@@ -14,8 +14,11 @@ const TransactionMapper = {
 
   convertEntityToTransaction(entity: TransactionEntity): Transaction {
     return {
-      netGain: entity.net_gain,
-      netPercentGain: entity.net_percent_gain,
+      runId: entity.run_id,
+      long: entity.long === undefined ? undefined : Boolean(entity.long),
+      // mysql2 returns DECIMAL columns as strings
+      netGain: entity.net_gain == null ? entity.net_gain : Number(entity.net_gain),
+      netPercentGain: entity.net_percent_gain == null ? entity.net_percent_gain : Number(entity.net_percent_gain),
       symbol: entity.symbol,
       datetime: entity.datetime,
       quantity: entity.quantity,

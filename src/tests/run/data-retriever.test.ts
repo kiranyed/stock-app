@@ -1,9 +1,11 @@
 import { PeriodType } from "../../shared/constants";
 import { DataRetriever } from "../../run/data-retriever";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
+import { SchwabMarketData } from "../../providers/schwab/schwab-market-data";
 import { SchwabDataMap } from "../../types/external-data-types";
+import * as MarketData from "../../providers/market-data";
 
-jest.mock("../../shared/services/trading-api");
+jest.mock("../../providers/schwab/schwab-client");
 
 describe("DataRetriever", () => {
   const defaultDateTimeStamp = 1609459200000;
@@ -36,8 +38,7 @@ describe("DataRetriever", () => {
           quote: { highPrice: 0, lowPrice: 0, lastPrice: 150, totalVolume },
         },
       };
-      (SchwabAPI.getStockData as jest.Mock).mockResolvedValue(mockData);
-      (SchwabAPI.getStockDataMultiple as jest.Mock).mockResolvedValue(mockData);
+      (SchwabClient.getQuotes as jest.Mock).mockResolvedValue(mockData);
 
       const mockAllStocks = { [PeriodType.DAY]: ["AAPL"] };
       const result = await DataRetriever.getData(
@@ -45,7 +46,7 @@ describe("DataRetriever", () => {
         mockAllStocks,
       );
 
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenCalledWith(
+      expect(SchwabClient.getQuotes).toHaveBeenCalledWith(
         mockAllStocks[PeriodType.DAY].join(","),
       );
       expect(result).toEqual([
@@ -63,17 +64,6 @@ describe("DataRetriever", () => {
   describe("getDataBackTest", () => {
     it("should get data for back test", () => {
       const mockStock = "AAPL";
-      const mockData: SchwabDataMap = {
-        [mockStock]: {
-          symbol: mockStock,
-          quote: {
-            highPrice: 0,
-            lowPrice: 0,
-            lastPrice: 150,
-            totalVolume: 123456789,
-          },
-        },
-      };
       const mockCandleData = {
         [mockStock]: {
           candles: [
@@ -92,7 +82,6 @@ describe("DataRetriever", () => {
           empty: false,
         },
       };
-      (SchwabAPI.getStockData as jest.Mock).mockResolvedValue(mockData);
 
       const result = DataRetriever.getDataBackTest(123422, mockCandleData);
 
@@ -100,7 +89,7 @@ describe("DataRetriever", () => {
         {
           high: 0,
           low: 0,
-          open: 0,
+          open: 11,
           close: 2,
           symbol: mockStock,
           price: 2,
@@ -125,14 +114,14 @@ describe("DataRetriever", () => {
         },
       };
 
-      (SchwabAPI.getStockDataMultiple as jest.Mock).mockResolvedValue(mockData);
+      (SchwabClient.getQuotes as jest.Mock).mockResolvedValue(mockData);
 
       const result = await DataRetriever.getDataInIntervals(
         [PeriodType.DAY],
         mockStocks,
       );
 
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenCalledWith(
+      expect(SchwabClient.getQuotes).toHaveBeenCalledWith(
         mockStocks[PeriodType.DAY].join(","),
       );
       expect(result).toEqual([
@@ -154,22 +143,9 @@ describe("DataRetriever", () => {
     });
 
     it("should keep first quote when same symbol appears in later batches", async () => {
-      const retrievalSpy = jest
-        .spyOn(
-          DataRetriever as unknown as {
-            getRetrievalParams: () => {
-              retrievalIntervalTime: number;
-              increment: number;
-              isReal: boolean;
-            };
-          },
-          "getRetrievalParams",
-        )
-        .mockReturnValue({
-          retrievalIntervalTime: 1000,
-          increment: 5,
-          isReal: false,
-        });
+      const providerSpy = jest
+        .spyOn(MarketData, "marketData")
+        .mockReturnValue(new SchwabMarketData({ quoteBatchSize: 5, quoteBatchDelayMs: 0 }));
       const mockStocks = {
         [PeriodType.DAY]: ["AAPL", "GOOGL", "MSFT", "TSLA", "NVDA", "META"],
       };
@@ -205,7 +181,7 @@ describe("DataRetriever", () => {
           quote: { highPrice: 0, lowPrice: 0, lastPrice: 500, totalVolume },
         },
       };
-      (SchwabAPI.getStockDataMultiple as jest.Mock)
+      (SchwabClient.getQuotes as jest.Mock)
         .mockResolvedValueOnce(firstBatch)
         .mockResolvedValueOnce(secondBatch);
 
@@ -214,14 +190,14 @@ describe("DataRetriever", () => {
         mockStocks,
       );
 
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenNthCalledWith(
+      expect(SchwabClient.getQuotes).toHaveBeenNthCalledWith(
         1,
         "AAPL,GOOGL,MSFT,TSLA,NVDA",
       );
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenNthCalledWith(2, "META");
+      expect(SchwabClient.getQuotes).toHaveBeenNthCalledWith(2, "META");
       expect(result.find((item) => item.symbol === "AAPL")?.price).toBe(150);
       expect(result.find((item) => item.symbol === "META")?.price).toBe(500);
-      retrievalSpy.mockRestore();
+      providerSpy.mockRestore();
     });
 
     it("filters empty symbol entries before requesting Schwab quotes", async () => {
@@ -235,15 +211,15 @@ describe("DataRetriever", () => {
         },
       };
 
-      (SchwabAPI.getStockDataMultiple as jest.Mock).mockResolvedValue(mockData);
+      (SchwabClient.getQuotes as jest.Mock).mockResolvedValue(mockData);
 
       const result = await DataRetriever.getDataInIntervals(
         [PeriodType.DAY],
         mockStocks,
       );
 
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenCalledTimes(1);
-      expect(SchwabAPI.getStockDataMultiple).toHaveBeenCalledWith("IWM");
+      expect(SchwabClient.getQuotes).toHaveBeenCalledTimes(1);
+      expect(SchwabClient.getQuotes).toHaveBeenCalledWith("IWM");
       expect(result).toEqual([
         {
           symbol: "IWM",

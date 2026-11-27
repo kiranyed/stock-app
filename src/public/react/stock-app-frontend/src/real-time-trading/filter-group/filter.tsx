@@ -8,6 +8,12 @@ import {
   IFlagFilterGroupPair,
 } from "../../shared/types";
 import { getFilter } from "./filter-util";
+import {
+  analysisOptions,
+  entryOptions,
+  exitOptions,
+  isSignalVariable,
+} from "./filter-variables";
 import { wouldCreateCycle } from "./flag-util";
 
 // Operator and variable options
@@ -17,55 +23,6 @@ const operatorOptions: IDropDownItem[] = [
   { label: "Less than", value: "<" },
   { label: "Less than or equal to", value: "<=" },
   { label: "Equal", value: "=" },
-];
-
-const variableOptions1: IDropDownItem[] = [
-  { label: "Percent change", value: "percentchange" },
-  {
-    label: "Percent change percentile rank",
-    value: "pricePercentChangePercentile",
-  },
-  { label: "Volume change", value: "volumechange" },
-  { label: "MTSI", value: "mtsi" },
-  { label: "TSI", value: "tsi" },
-  { label: "MACD", value: "macdSignalLine" },
-  { label: "RSI", value: "rsi" },
-  { label: "ADX", value: "adx" },
-  { label: "Bollinger Bands", value: "bollingerBands" },
-  { label: "EMA", value: "priceEma" },
-  { label: "SMA", value: "priceSma" },
-  { label: "VWAP", value: "vwap" },
-  { label: "RSI Crossover", value: "rsiCrossover" },
-  { label: "MACD crossover", value: "macdCrossover" },
-  { label: "RSI Divergence", value: "rsiDivergence" },
-  { label: "Volume SMA", value: "volumeSma" },
-  { label: "MACD Divergence", value: "macdDivergence" },
-  { label: "Price", value: "price" },
-];
-
-const variableOptions3: IDropDownItem[] = [
-  { label: "Percent change", value: "percentchange" },
-  {
-    label: "Percent change percentile rank",
-    value: "pricePercentChangePercentile",
-  },
-  { label: "Volume moving average", value: "volumeSma" },
-  { label: "Price simple moving average", value: "priceSma" },
-  { label: "Price Exponential moving average", value: "priceEma" },
-  { label: "Volume change", value: "volumeChange" },
-  { label: "MTSI", value: "mtsi" },
-  { label: "TSI", value: "tsi" },
-  { label: "MACD", value: "macdSignalLine" },
-  { label: "RSI", value: "rsi" },
-  { label: "Time since entry (number of periods)", value: "timeSinceEntry" },
-  { label: "Percent gain since purchase", value: "percentGain" },
-  { label: "Price", value: "price" },
-];
-
-const variableOptions2: IDropDownItem[] = [
-  { label: "Market cap", value: "marketcap" },
-  { label: "Percent change", value: "percentchange" },
-  { label: "Volume change", value: "volumechange" },
 ];
 
 interface IProps {
@@ -79,14 +36,15 @@ interface IProps {
   flagName?: string;
   /** Strategy candle period passed down for session limit validation */
   period?: number;
+  /** Overrides the variable list picked from `type` */
+  variableOptions?: IDropDownItem[];
 }
 
 export function Filter(props: IProps) {
   const className = "";
   const [constant, setConstant] = useState(props.filter.compareVar === "");
   const [booleanFilter, setBooleanFilter] = useState(
-    props.filter.varName.includes("Crossover") ||
-      props.filter.varName.includes("Divergence"),
+    isSignalVariable(props.filter.varName),
   );
 
   const changeCompare = (constantVal: boolean) => {
@@ -99,15 +57,15 @@ export function Filter(props: IProps) {
   };
 
   const makeChange = (key: string, value: string, index: number) => {
-    if (
-      key.includes("varName") &&
-      (value.includes("Crossover") || value.includes("Divergence"))
-    ) {
-      props.makeChange("operator", "=", index);
-      props.makeChange("compareVal", "1", index);
-      setBooleanFilter(true);
-    } else {
-      setBooleanFilter(false);
+    // Only a change of variable switches between "is true" and a comparison;
+    // editing a signal's params must not.
+    if (key === "varName") {
+      const signal = isSignalVariable(value);
+      if (signal) {
+        props.makeChange("operator", "=", index);
+        props.makeChange("compareVal", "1", index);
+      }
+      setBooleanFilter(signal);
     }
     props.makeChange(key, value, index);
   };
@@ -131,12 +89,15 @@ export function Filter(props: IProps) {
       })
     : null;
 
-  const options =
-    props.type === "sell" || props.type === "cover"
-      ? variableOptions3
-      : props.type
-        ? variableOptions1
-        : variableOptions2;
+  // Copy: flags are appended below, and the lists are shared module constants.
+  const options: IDropDownItem[] = [
+    ...(props.variableOptions ??
+      (props.type === "sell" || props.type === "cover"
+        ? exitOptions
+        : props.type
+          ? entryOptions
+          : analysisOptions)),
+  ];
 
   const currentFlagName = props.flagName || "";
   if (props.flags) {

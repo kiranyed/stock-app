@@ -9,240 +9,210 @@ type SqlRow<T> = T[];
 dotenv.config();
 
 export class DatabaseAPI {
-  private static connection: mysql.Connection | null = null;
-  private static awsConnection: mysql.Connection;
-  private static connectionPromise: Promise<void> | null = null;
+  private static pool: mysql.Pool | null = null;
+  private static poolPromise: Promise<void> | null = null;
+  /** While a transaction is open, every query runs on this connection (the integration tests' sandbox). */
+  private static pinned: mysql.PoolConnection | null = null;
+  private static transactionStarting: Promise<void> | null = null;
+  /**
+   * Set by the first `startTransaction`: from then on this process only queries inside a
+   * transaction. After the test's rollback or close, a query from a timer or job still in
+   * flight is refused instead of committing to the real database through the pool.
+   */
+  private static sandboxed = false;
+  /** Set by `closeConnection`, cleared by `createConnection`: a query after the close doesn't reopen the pool. */
+  private static closed = false;
 
   public static connectionExists() {
-    return (
-      !!this.connection &&
-      (this.connection.state === "authenticated" ||
-        this.connection.state === "connected")
-    );
+    return !!this.pool;
   }
 
-  // public static createAWSDBConnection() {
-  //     dotenv.config();
-  //     const { AWS_DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA_NAME } = process.env;
-  //     return new Promise<void>((resolve, reject) => {
+  /**
+   * Creates the connection pool and checks that one connection can be opened, so bad
+   * credentials fail at startup. Size: `DB_POOL_SIZE` (default 10).
+   */
+  public static createConnection() {
+    this.closed = false;
+    return this.openPool();
+  }
 
-  //         /* will need to pass in the password through command line*/
-  //         this.awsConnection = mysql.createConnection({
-  //             host: AWS_DB_HOST,
-  //             user: DB_USER,
-  //             password: DB_PASSWORD,
-  //           });
-  //         this.awsConnection.connect(err => {
-  //             if (err) {
-  //                 reject(err);
-  //             } else {
-  //                 resolve();
-  //             }
-  //         });
-  //     }).then(() => {
-  //         return this.runQuery(`use ${DB_SCHEMA_NAME}`, true);
-  //     });
-  // }
+  private static openPool() {
+    if (this.pool) return Promise.resolve();
+    if (this.poolPromise) return this.poolPromise;
 
-  public static createConnection(test = false) {
     dotenv.config();
-    let host: string;
-    let user: string;
-    let password: string;
-    let schemaName: string;
-    if (test) {
-      const { TEST_DB_HOST, TEST_DB_USER, TEST_DB_PASSWORD, DB_SCHEMA_NAME } =
-        process.env;
-
-      host = TEST_DB_HOST ?? "";
-      user = TEST_DB_USER ?? "";
-      password = TEST_DB_PASSWORD ?? "";
-      schemaName = DB_SCHEMA_NAME ?? "";
-    } else {
-      const { DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA_NAME } = process.env;
-      host = DB_HOST ?? "";
-      user = DB_USER ?? "";
-      password = DB_PASSWORD ?? "";
-      schemaName = DB_SCHEMA_NAME ?? "";
-    }
-    if (this.connectionExists()) {
-      return Promise.resolve();
-    }
-
-    if (this.connectionPromise) {
-      return this.connectionPromise;
-    }
-
-    this.connectionPromise = new Promise<void>((resolve, reject) => {
-      /* will need to pass in the password through command line*/
-      this.connection = mysql.createConnection({
-        host,
-        user,
-        password,
-        database: schemaName,
-        multipleStatements: true,
-      });
-
-      this.connection.on("error", (err: QueryError) => {
-        if (err.code === "PROTOCOL_CONNECTION_LOST") {
-          this.connectionPromise = null;
-          this.connection = null as unknown as mysql.Connection;
-        }
-      });
-
-      this.connection.connect((err: QueryError | null) => {
-        if (err) {
-          this.connectionPromise = null;
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    const { DB_HOST, DB_USER, DB_PASSWORD, DB_SCHEMA_NAME, DB_POOL_SIZE } = process.env;
+    const pool = mysql.createPool({
+      host: DB_HOST ?? "",
+      user: DB_USER ?? "",
+      password: DB_PASSWORD ?? "",
+      database: DB_SCHEMA_NAME ?? "",
+      connectionLimit: Number(DB_POOL_SIZE) || 10,
+      waitForConnections: true,
+      enableKeepAlive: true,
+      // One statement per query: an injected "; drop table …" fails instead of running.
+      multipleStatements: false,
     });
 
-    return this.connectionPromise;
-  }
-
-  public static closeConnection() {
-    return new Promise<void>((resolve, reject) => {
-      this.connection!.end((err: QueryError | null) => {
+    const ready = new Promise<void>((resolve, reject) => {
+      pool.getConnection((err, connection) => {
         if (err) {
+          pool.end(() => undefined);
           reject(err);
+          return;
         }
-        this.connectionPromise = null;
-        this.connection = null as unknown as mysql.Connection;
-        console.log("Connection closed");
+        connection.release();
+        this.pool = pool;
         resolve();
       });
     });
-  }
-
-  /* general function to pass the query string and run it like that  */
-  public static async runQuery<T>(query: string, isRetry = false): Promise<SqlRow<T>> {
-    if (!this.connectionExists()) {
-      await this.createConnection();
-    }
-
-    const con = this.connection;
-    return new Promise<SqlRow<T>>((resolve, reject) => {
-      con!.query(query, async (err: QueryError | null, data: unknown) => {
-        if (err) {
-          const errorCode = (err as QueryError).code;
-          const errorMessage = (err as QueryError).message || "";
-          
-          // If connection is closed/lost and we haven't retried yet, reset and retry
-          if (!isRetry && (errorCode === "PROTOCOL_CONNECTION_LOST" || errorMessage.includes("connection is in closed state"))) {
-            this.connectionPromise = null;
-            this.connection = null as unknown as mysql.Connection;
-            try {
-              const result = await this.runQuery<T>(query, true);
-              resolve(result);
-            } catch (retryErr) {
-              reject(retryErr);
-            }
-          } else {
-            reject(err);
-          }
-        } else {
-          resolve(data as SqlRow<T>);
-        }
-      });
+    this.poolPromise = ready;
+    // cleared after the assignment above, so a later call can try again
+    ready.catch(() => {
+      if (this.poolPromise === ready) this.poolPromise = null;
     });
+    return ready;
   }
 
-  public static async startTransaction(): Promise<void> {
-    if (!this.connectionExists()) {
-      await this.createConnection();
+  /**
+   * Closes the pool and any open transaction's connection. If the pool or a transaction
+   * is still being opened, waits for that to finish first, so it can't come back after the close.
+   * Later queries are refused until `createConnection` is called again.
+   */
+  public static async closeConnection() {
+    this.closed = true;
+    await this.poolPromise?.catch(() => undefined);
+    await this.transactionStarting?.catch(() => undefined);
+    const pool = this.pool;
+    const pinned = this.pinned;
+    this.pinned = null;
+    this.pool = null;
+    this.poolPromise = null;
+    // MySQL rolls back the open transaction when its connection closes
+    pinned?.destroy();
+    if (!pool) return;
+    await new Promise<void>((resolve, reject) => pool.end((err) => (err ? reject(err) : resolve())));
+    console.log("Connection closed");
+  }
+
+  /**
+   * Runs `sql` with `?` placeholders filled from `params`; the driver escapes
+   * every value. Use this for anything built from user input.
+   */
+  public static query<T>(sql: string, params: unknown[] = []): Promise<SqlRow<T>> {
+    return this.send<SqlRow<T>>(sql, params);
+  }
+
+  /** Runs an INSERT with placeholders and returns the new row's id. */
+  public static async insert(sql: string, params: unknown[] = []): Promise<number> {
+    return (await this.send<mysql.ResultSetHeader>(sql, params)).insertId;
+  }
+
+  /** Runs an UPDATE or DELETE with placeholders and returns how many rows it matched. */
+  public static async modify(sql: string, params: unknown[] = []): Promise<number> {
+    return (await this.send<mysql.ResultSetHeader>(sql, params)).affectedRows;
+  }
+
+  /** Runs a finished SQL string. Older code; new code uses `query` with placeholders. */
+  public static runQuery<T>(query: string): Promise<SqlRow<T>> {
+    return this.send<SqlRow<T>>(query, undefined);
+  }
+
+  private static async send<R>(sql: string, params: unknown[] | undefined, isRetry = false): Promise<R> {
+    if (!this.pinned) await this.transactionStarting?.catch(() => undefined);
+    if (!this.pinned) {
+      if (this.sandboxed) throw this.refuse(sql, "outside the test's transaction, which was rolled back or closed");
+      if (this.closed) throw this.refuse(sql, "after closeConnection()");
     }
-    const connection = this.connection!; // Assuming you have a method to get the connection.
-    return new Promise<void>((resolve, reject) => {
-      connection.beginTransaction((err: QueryError | null) => {
-        if (err) {
+    if (!this.pool) await this.openPool();
+    const target: mysql.Pool | mysql.PoolConnection | null = this.pinned ?? this.pool;
+    if (!target) throw new Error("the database connection is closed");
+
+    return new Promise<R>((resolve, reject) => {
+      const done = (err: QueryError | null, data: unknown) => {
+        if (!err) return resolve(data as R);
+        if (!isRetry && target === this.pool && DatabaseAPI.safeToRetry(err, sql)) {
+          this.send<R>(sql, params, true).then(resolve, reject);
+        } else {
           reject(err);
-        } else {
-          resolve();
         }
-      });
+      };
+      if (params === undefined) target.query(sql, done);
+      else target.query(sql, params, done);
     });
   }
 
-  public static async rollbackTransaction(): Promise<void> {
-    if (!this.connectionExists()) {
-      await this.createConnection();
-    }
-    const connection = this.connection!; // Assuming you have a method to get the connection.
-    return new Promise<void>((resolve, reject) => {
-      connection.rollback((err: QueryError | null) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+  /**
+   * The pool drops a dead connection, so one more try gets a fresh one. Never inside a
+   * transaction (target must be the pool): its connection, and the transaction, are gone.
+   * "closed state" means the query was refused before it was sent, so any query can go again.
+   * A connection lost mid-query may have run it already, so only reads go again.
+   */
+  private static safeToRetry(err: QueryError, sql: string) {
+    if ((err.message || "").includes("closed state")) return true;
+    return err.code === "PROTOCOL_CONNECTION_LOST" && /^\s*(select|show)\b/i.test(sql);
+  }
+
+  /**
+   * Something still running (a timer, a live job) after its owner shut the database down.
+   * Logged as well as thrown, since background callers often catch and carry on.
+   */
+  private static refuse(sql: string, when: string) {
+    const err = new Error(
+      `DatabaseAPI refused a query ${when}; something is still running after the test or shutdown: ${sql.slice(0, 120)}`,
+    );
+    console.error(err);
+    return err;
+  }
+
+  /**
+   * Opens a transaction on one connection; every query runs on it until the rollback.
+   * Only the integration tests use this, and from then on queries outside a transaction are refused.
+   */
+  public static startTransaction(): Promise<void> {
+    if (this.pinned || this.transactionStarting) return Promise.reject(new Error("a transaction is already open"));
+    if (this.closed) return Promise.reject(new Error("the database connection is closed"));
+    this.sandboxed = true;
+    const starting = this.openTransaction();
+    this.transactionStarting = starting;
+    // cleared after the assignment above, as in createConnection
+    return starting.finally(() => {
+      if (this.transactionStarting === starting) this.transactionStarting = null;
     });
   }
 
-  public static async runTwoStatements<T>(
-    query1: string,
-    query2: string,
-  ): Promise<SqlRow<T>> {
-    if (!this.connectionExists()) {
-      await this.createConnection();
-    }
-    const connection = this.connection!; // Assuming you have a method to get the connection.
-
+  private static async openTransaction(): Promise<void> {
+    if (!this.pool) await this.openPool();
+    const pool = this.pool;
+    if (!pool) throw new Error("the database connection is closed");
+    const connection = await new Promise<mysql.PoolConnection>((resolve, reject) =>
+      pool.getConnection((err, con) => (err ? reject(err) : resolve(con))),
+    );
     try {
-      await new Promise<void>((resolve, reject) => {
-        connection.beginTransaction((err: QueryError | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      await this.runQuery(query1); // Execute the INSERT query
-
-      const rows = await this.runQuery<T>(query2); // Execute the SELECT query
-
-      await new Promise<void>((resolve, reject) => {
-        connection.commit((err: QueryError | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-      return rows; // Return the rows
-    } catch (error) {
-      await new Promise<void>((resolve, reject) => {
-        connection.rollback((err: QueryError | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-      throw error; // Re-throw the error
+      await new Promise<void>((resolve, reject) =>
+        connection.beginTransaction((err) => (err ? reject(err) : resolve())),
+      );
+    } catch (err) {
+      connection.destroy();
+      throw err;
     }
+    this.pinned = connection;
   }
 
-  public static runInsertQuery(query: string, aws = false) {
-    const con = aws ? this.awsConnection : this.connection;
-    return new Promise<{ insertId: number }>((resolve, reject) => {
-      con!.query<mysql.ResultSetHeader>(
-        query,
-        (err: QueryError | null, data: mysql.ResultSetHeader) => {
-          if (err) {
-            reject(err);
-          }
-          resolve({ insertId: data.insertId });
-        },
-      );
-    });
+  /** Rolls back the open transaction. Waits for one that is still being opened. */
+  public static async rollbackTransaction(): Promise<void> {
+    await this.transactionStarting?.catch(() => undefined);
+    const connection = this.pinned;
+    if (!connection) throw new Error("no transaction is open");
+    this.pinned = null;
+    try {
+      await new Promise<void>((resolve, reject) => connection.rollback((err) => (err ? reject(err) : resolve())));
+    } catch (err) {
+      // never hand a connection that may still be inside the transaction back to the pool
+      connection.destroy();
+      throw err;
+    }
+    connection.release();
   }
 
   public static getStockNamesEarnings(timeRange: IRange) {
@@ -265,41 +235,5 @@ export class DatabaseAPI {
         StockTradeUtil.getStringSurroundedByQuotes(end);
       return this.runQuery(part1);
     }
-  }
-  /* get specified strategies */
-
-  // public static closeAWSConnection() {
-  //     return new Promise<void>((resolve, reject) => {
-  //         if (this.awsConnection) {
-  //             this.awsConnection.end((err) => {
-  //                 if (err) {
-  //                     reject(err);
-  //                 } else {
-  //                     console.log('AWS connection closed');
-  //                     resolve();
-  //                 }
-  //             });
-  //         } else {
-  //             resolve();
-  //         }
-  //     });
-  // }
-
-  public static closeDBConnection() {
-    return new Promise<void>((resolve, reject) => {
-      if (this.connection) {
-        this.connection.end((err: QueryError | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            this.connectionPromise = null;
-            console.log("DB connection closed");
-            resolve();
-          }
-        });
-      } else {
-        resolve();
-      }
-    });
   }
 }

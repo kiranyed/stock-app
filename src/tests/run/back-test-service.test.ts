@@ -25,11 +25,8 @@ describe("BackTestService", () => {
           getTestResults: jest.fn(),
           getPeriod: jest.fn(),
           getVars: jest.fn(),
-          getAllVariables: jest.fn(),
-          canRun: jest.fn(),
+          getVariables: jest.fn(() => []),
           getConfigId: jest.fn(),
-          getAdditionalPeriods: jest.fn(() => []),
-          getCrossPeriodVars: jest.fn(),
           getName: jest.fn(() => "Test Job"),
         },
       ];
@@ -47,8 +44,8 @@ describe("BackTestService", () => {
 
       mockBackTestMasterJob = {
         getAllTestResults: jest.fn().mockReturnValue(["gainz"]),
-        prepare: jest.fn(),
         prepareJobs: jest.fn(),
+        periods: jest.fn(() => [1]),
         run: jest.fn(),
       } as unknown as jest.Mocked<BackTestMasterJob>;
       (BackTestMasterJob as jest.Mock).mockImplementation(

@@ -1,48 +1,21 @@
 import { Request, Router, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
-import { validateStrategy } from "../middleware/strategy-middleware";
-import StrategyRepository from "../shared/services/repos/strategy-repository";
-import { IStrategy } from "../types/strategy-types";
-import { AuthenticatedRequest } from "../types/middleware-types";
 import Error400 from "../errors/error-400";
-import StrategyMapper from "../mappers/strategy-mapper";
-import { getUserIdFromRequest, userIdCheck } from "../middleware/shared-funcs";
-
-export interface StrategyRequest extends AuthenticatedRequest {
-  body: IStrategy;
-}
-export interface IDRequest extends AuthenticatedRequest {
-  query: { id: string };
-}
-export interface IDsRequest extends AuthenticatedRequest {
-  query: { id: string[] };
-}
+import { requireUserId as userOf } from "../middleware/shared-funcs";
+import { parseId, parseIds } from "../services/parse";
+import { StrategyService } from "../services/strategy-service";
 
 const strategyRouter = Router();
 
-// Apply middlewares
-strategyRouter.use(validateStrategy);
-
-// Router functions
+/** GET /api/strategy/get-by-name?name=a&name=b (the frontend calls /getByName) */
 const getByName = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name } = req.query;
-    if (
-      typeof name === "string" ||
-      (Array.isArray(name) && name.every((item) => typeof item === "string"))
-    ) {
-      const strategies = await StrategyRepository.getByName(
-        Array.isArray(name) ? name : [name],
-        2,
-      );
-      res.status(StatusCodes.OK).json({
-        strategies: strategies.map((strategy) =>
-          StrategyMapper.convertEntityToStrategy(strategy),
-        ),
-      });
-    } else {
+    const names = Array.isArray(name) ? name : [name];
+    if (!names.length || !names.every((n): n is string => typeof n === "string")) {
       throw new Error400("invalid name parameter");
     }
+    res.status(StatusCodes.OK).json({ strategies: await StrategyService.getByNames(userOf(req), names) });
   } catch (error) {
     return next(error);
   }
@@ -50,15 +23,7 @@ const getByName = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    userIdCheck(req);
-    const strategies = await StrategyRepository.getAllStrategies(
-      getUserIdFromRequest(req),
-    );
-    res.status(StatusCodes.OK).json({
-      strategies: strategies.map((strategy) =>
-        StrategyMapper.convertEntityToStrategy(strategy),
-      ),
-    });
+    res.status(StatusCodes.OK).json({ strategies: await StrategyService.list(userOf(req)) });
   } catch (error) {
     return next(error);
   }
@@ -66,11 +31,7 @@ const getAll = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllNames = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    userIdCheck(req);
-    const rows = await StrategyRepository.getAllNames(
-      getUserIdFromRequest(req),
-    );
-    res.status(StatusCodes.OK).json(rows);
+    res.status(StatusCodes.OK).json(await StrategyService.listNames(userOf(req)));
   } catch (error) {
     return next(error);
   }
@@ -78,15 +39,8 @@ const getAllNames = async (req: Request, res: Response, next: NextFunction) => {
 
 const edit = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    userIdCheck(req);
-    const strategy = req.body;
-    await StrategyRepository.updateStrategy(
-      { ...strategy },
-      getUserIdFromRequest(req),
-    );
-    res
-      .status(StatusCodes.OK)
-      .json({ msg: "updated strategy: " + strategy.name });
+    const strategy = await StrategyService.update(userOf(req), parseId(req.params.id), req.body);
+    res.status(StatusCodes.OK).json({ msg: "updated strategy: " + strategy.name });
   } catch (error) {
     return next(error);
   }
@@ -94,62 +48,34 @@ const edit = async (req: Request, res: Response, next: NextFunction) => {
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    userIdCheck(req);
-    const { screeners, name, description, period } = req.body;
-    const row = await StrategyRepository.createStrategy(
-      [{ name, screeners, description, period }],
-      getUserIdFromRequest(req),
-    );
-    res.status(StatusCodes.OK).json({ id: row.insertId });
+    res.status(StatusCodes.OK).json(await StrategyService.create(userOf(req), req.body));
   } catch (error) {
     return next(error);
   }
 };
 
-const deleteStrategy = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const deleteStrategy = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    if (typeof id !== "string" || id.length === 0) {
-      throw new Error400("No ID passed for strategy deletion");
-    }
-    await StrategyRepository.deleteStrategy(parseInt(id));
+    await StrategyService.remove(userOf(req), [parseId(req.params.id)]);
     res.status(StatusCodes.OK).json({ message: "Deleted strategy" });
   } catch (error) {
     return next(error);
   }
 };
 
-const deleteMultiple = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+/** DELETE /api/strategy?id=1&id=2 */
+const deleteMultiple = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.query;
-    if (!id) {
-      throw new Error400("No ID(s) passed for strategy deletion");
-    }
-    const idArr = new Array<number>();
-    if (Array.isArray(id) && id.every((item) => typeof item === "string")) {
-      idArr.push(...id.map((item) => parseInt(item)));
-    } else if (typeof id === "string") {
-      idArr.push(parseInt(id));
-    } else {
-      throw new Error400("Invalid ID(s) passed for strategy deletion");
-    }
-    await StrategyRepository.deleteStrategies(idArr);
+    await StrategyService.remove(userOf(req), parseIds(id));
     res.status(StatusCodes.OK).json({ message: "Deleted strategies" });
   } catch (error) {
     return next(error);
   }
 };
 
-// Define routes
 strategyRouter.get("/get-by-name", getByName);
+strategyRouter.get("/getByName", getByName);
 strategyRouter.get("/all", getAll);
 strategyRouter.get("/names", getAllNames);
 strategyRouter.put("/:id", edit);

@@ -46,7 +46,15 @@ describe("StrategyMapper", () => {
   });
 
   describe("convertEntityToStrategy", () => {
-    it("should convert an IStrategyEntity to an IStrategy", () => {
+    it("keeps stored ids, and numbers only the screeners without one, avoiding ids in use", () => {
+      const stored = [{ ...defaultScreener, id: "s2" }, defaultScreener, { ...defaultScreener, id: "x" }, defaultScreener];
+      const strategy = StrategyMapper.convertEntityToStrategy({
+        id: 1, name: "n", description: "", period: Period.ONE_DAY, user_id: 1, screeners: JSON.stringify(stored),
+      });
+      expect(strategy.screeners.map((s) => s.id)).toEqual(["s2", "s2_2", "x", "s4"]);
+    });
+
+    it("should convert an IStrategyEntity to an IStrategy, giving version-1 screeners their ids", () => {
       const mockEntity: IStrategyEntity = {
         id: 1,
         name: "Test Strategy",
@@ -62,7 +70,7 @@ describe("StrategyMapper", () => {
       expect(strategy).toEqual({
         id: mockEntity.id,
         name: mockEntity.name,
-        screeners: [defaultScreener],
+        screeners: [{ ...defaultScreener, id: "s1" }],
         description: mockEntity.description,
         period: mockEntity.period,
       });

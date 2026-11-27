@@ -1,213 +1,92 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import Error400 from "../../errors/error-400";
 import {
   createStockGroup,
   deleteGroup,
+  deleteGroups,
   getStockGroupNames,
+  getStockGroups,
   saveStockGroup,
 } from "../../routers/group-router";
-import StockGroupRepository from "../../shared/services/repos/stock-group-repository";
-import { AuthenticatedRequest } from "../../types/middleware-types";
+import { GroupService } from "../../services/group-service";
 
-jest.mock("../../shared/services/repos/stock-group-repository");
-jest.mock("../../middleware/group-middleware");
-jest.mock("../../middleware/error-middleware");
+jest.mock("../../services/group-service", () => ({
+  ...jest.requireActual("../../services/group-service"),
+  GroupService: {
+    listNames: jest.fn(),
+    list: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
+  },
+}));
 
-describe("groupRouter", () => {
-  let req: Partial<Request> & { headers: { "user-id": string } };
-  let res: Partial<Response>;
-  let next: NextFunction;
-  const userId = "1";
+const service = GroupService as jest.Mocked<typeof GroupService>;
 
-  const userIdParsed = parseInt(userId);
+const call = async (
+  handler: (req: Request, res: Response, next: jest.Mock) => Promise<unknown>,
+  req: Partial<Request>,
+) => {
+  const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+  const next = jest.fn();
+  await handler({ headers: { "user-id": "7" }, params: {}, query: {}, ...req } as Request, res as unknown as Response, next);
+  return { res, next };
+};
 
-  beforeEach(() => {
-    req = {
-      body: {},
-      params: {},
-      headers: {
-        "user-id": "1",
-      },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    } as unknown as Response;
-    next = jest.fn();
+beforeEach(() => jest.clearAllMocks());
+
+describe("group routes", () => {
+  it("list names and groups for the caller", async () => {
+    service.listNames.mockResolvedValue([{ id: 1, name: "A" }]);
+    const names = await call(getStockGroupNames, {});
+    expect(service.listNames).toHaveBeenCalledWith(7);
+    expect(names.res.json).toHaveBeenCalledWith([{ id: 1, name: "A" }]);
+
+    service.list.mockResolvedValue([]);
+    await call(getStockGroups, {});
+    expect(service.list).toHaveBeenCalledWith(7);
   });
 
-  describe("getStockGroupNames", () => {
-    it("should return stock group names", async () => {
-      const mockRows = [{ name: "Group1" }, { name: "Group2" }];
-
-      (
-        StockGroupRepository.getAllStockGroupNames as jest.Mock
-      ).mockResolvedValue(mockRows);
-
-      await getStockGroupNames(
-        req as AuthenticatedRequest,
-        res as Response,
-        next,
-      );
-
-      expect(StockGroupRepository.getAllStockGroupNames).toHaveBeenCalledWith(
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith(mockRows);
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (
-        StockGroupRepository.getAllStockGroupNames as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      await getStockGroupNames(
-        req as AuthenticatedRequest,
-        res as Response,
-        next,
-      );
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+  it("create passes the body and returns the new group", async () => {
+    service.create.mockResolvedValue({ id: 5, name: "A", symbols: ["X"] });
+    const { res } = await call(createStockGroup, { body: { name: "A", symbols: ["X"] } });
+    expect(service.create).toHaveBeenCalledWith(7, { name: "A", symbols: ["X"] });
+    expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
+    expect(res.json).toHaveBeenCalledWith({ id: 5, name: "A", symbols: ["X"] });
   });
 
-  describe("createStockGroup", () => {
-    it("should create a stock group and return the result", async () => {
-      req.body = { name: "NewGroup", symbols: ["AAPL"] };
-
-      const mockGroup = { id: "1", symbols: ["AAPL"], name: "NewGroup" };
-
-      (StockGroupRepository.createGroup as jest.Mock).mockResolvedValue([
-        undefined,
-        [{ "LAST_INSERT_ID()": "1" }],
-      ]);
-
-      await createStockGroup(
-        req as AuthenticatedRequest,
-        res as Response,
-        next,
-      );
-
-      expect(StockGroupRepository.createGroup).toHaveBeenCalledWith(
-        req.body.name,
-        req.body.symbols,
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith(mockGroup);
-    });
-
-    it("should call next with the error on failure", async () => {
-      req.body = { name: "NewGroup", symbols: ["AAPL"] };
-      const mockError = new Error("Test Error");
-      (StockGroupRepository.createGroup as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await createStockGroup(
-        req as AuthenticatedRequest,
-        res as Response,
-        next,
-      );
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
-
-    it("should format symbols by trimming whitespace and removing line breaks", async () => {
-      req.body = {
-        name: "NewGroup",
-        symbols: ["AAPL\n", " GOOGL\r\n", "MSFT "],
-      };
-
-      (StockGroupRepository.createGroup as jest.Mock).mockResolvedValue([
-        undefined,
-        [{ "LAST_INSERT_ID()": "1" }],
-      ]);
-
-      await createStockGroup(
-        req as AuthenticatedRequest,
-        res as Response,
-        next,
-      );
-
-      expect(StockGroupRepository.createGroup).toHaveBeenCalledWith(
-        "NewGroup",
-        ["AAPL", "GOOGL", "MSFT"],
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-    });
+  it("update takes the id from the path", async () => {
+    service.update.mockResolvedValue({ id: 3, name: "A", symbols: [] });
+    await call(saveStockGroup, { params: { id: "3" }, body: { id: 99, name: "A", symbols: [] } });
+    expect(service.update).toHaveBeenCalledWith(7, 3, { id: 99, name: "A", symbols: [] });
   });
 
-  describe("updateStockGroup", () => {
-    it("should update a stock group and return the result", async () => {
-      req.body = { name: "UpdatedGroup", id: "1", symbols: ["AAPL"] };
+  it("delete one or several, answering 204", async () => {
+    const one = await call(deleteGroup, { params: { id: "3" } });
+    expect(service.remove).toHaveBeenCalledWith(7, [3]);
+    expect(one.res.status).toHaveBeenCalledWith(StatusCodes.NO_CONTENT);
 
-      const mockGroup = { id: "1", name: "UpdatedGroup", symbols: ["AAPL"] };
-
-      (StockGroupRepository.saveGroup as jest.Mock).mockResolvedValue(
-        mockGroup,
-      );
-
-      await saveStockGroup(req as Request, res as Response, next);
-
-      expect(StockGroupRepository.saveGroup).toHaveBeenCalledWith(
-        req.body.name,
-        req.body.symbols,
-        req.body.id,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith(mockGroup);
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (StockGroupRepository.saveGroup as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await saveStockGroup(req as Request, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+    await call(deleteGroups, { query: { id: ["3", "4"] } });
+    expect(service.remove).toHaveBeenLastCalledWith(7, [3, 4]);
+    await call(deleteGroups, { query: { id: "5" } });
+    expect(service.remove).toHaveBeenLastCalledWith(7, [5]);
   });
 
-  describe("deleteStockGroup", () => {
-    it("should delete a stock group and return the result", async () => {
-      req.params = { id: "1" };
+  it("send bad ids and service errors to the error handler", async () => {
+    const bad = await call(deleteGroup, { params: { id: "1 or 1=1" } });
+    expect(bad.next.mock.calls[0][0]).toBeInstanceOf(Error400);
+    expect(service.remove).not.toHaveBeenCalled();
 
-      (StockGroupRepository.deleteGroup as jest.Mock).mockResolvedValue(true);
+    const failure = new Error("db down");
+    service.list.mockRejectedValue(failure);
+    const failed = await call(getStockGroups, {});
+    expect(failed.next).toHaveBeenCalledWith(failure);
+  });
 
-      await deleteGroup(req as AuthenticatedRequest, res as Response, next);
-
-      expect(StockGroupRepository.deleteGroup).toHaveBeenCalledWith("1");
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.NO_CONTENT);
-      expect(res.json).toHaveBeenCalledWith({});
-    });
-
-    it("should call next with the error on failure", async () => {
-      req.params = { id: "1" };
-
-      const mockError = new Error("Test Error");
-      (StockGroupRepository.deleteGroup as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await deleteGroup(req as AuthenticatedRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
-
-    it("should throw Error400 when id is not provided in deleteGroup", async () => {
-      req.params = {};
-
-      await deleteGroup(req as AuthenticatedRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalled();
-      const error = (next as jest.Mock).mock.calls[0][0];
-      expect(error).toBeInstanceOf(Error);
-    });
+  it("refuse a request with no user", async () => {
+    const { next } = await call(getStockGroups, { headers: {} });
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error400);
+    expect(service.list).not.toHaveBeenCalled();
   });
 });

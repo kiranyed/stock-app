@@ -2,14 +2,10 @@ import React, { ChangeEvent } from "react";
 import { InputText } from "primereact/inputtext";
 import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
 import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
+import { barPeriodOptions, isBullish } from "./filter-variables";
 
 interface IFilterMappingProps {
-  makeChange: (
-    name: string,
-    value: string,
-    index: number,
-    compareVar?: boolean,
-  ) => void;
+  makeChange: (name: string, value: string, index: number) => void;
   filter: { [key: string]: string };
   index: number;
   varName: string;
@@ -25,6 +21,18 @@ const MAX_PERCENTILE_SESSIONS: Partial<Record<number, number>> = {
   30: 30,
 };
 
+const bandOptions = [
+  { label: "Upper", value: "upper" },
+  { label: "Middle", value: "middle" },
+  { label: "Lower", value: "lower" },
+];
+
+/**
+ * The inputs for a variable's params. Field names match what the backend's
+ * src/engine/filter-specs.ts reads. Only `timeAgo` is per side (the compare
+ * variable's is `compareVarTimeAgo`); every other param is shared by both
+ * sides of the filter, because that is how the engine reads them.
+ */
 export const getFilter = ({
   varName,
   makeChange,
@@ -32,30 +40,64 @@ export const getFilter = ({
   index,
   compareVar,
   period,
-}: IFilterMappingProps) => {
-  let input: React.ReactNode;
-  const prefix = compareVar ? "compareVar" : "";
-  // make this an if statement.  check if isMacDfilter(filter): filter is IMacdFilter , which will give
-  // the macd properties (IMacdFilter will extend IFilter, and it will have fastPeriod
-  // and slowPeriod properties).  and instead of passing "value" in the props, pass in the filter
-  const timeAgoVarName = compareVar ? "compareVarTimeAgo" : "timeAgo";
+}: IFilterMappingProps): React.ReactNode => {
+  const timeAgoField = compareVar ? "compareVarTimeAgo" : "timeAgo";
+  const idPrefix = `${compareVar ? "compare-" : ""}${varName}-${index}`;
+
+  const text = (label: string, field: string, placeholder?: string) => (
+    <span key={field}>
+      <label htmlFor={`${idPrefix}-${field}`}> {label}: </label>
+      <InputText
+        id={`${idPrefix}-${field}`}
+        value={filter[field] ?? ""}
+        placeholder={placeholder}
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          makeChange(field, e.target.value, index)
+        }
+      />{" "}
+    </span>
+  );
+
+  const barPeriod = (label: string, field: string, placeholder: string) => (
+    <span key={field}>
+      <label htmlFor={`${idPrefix}-${field}`}> {label}: </label>
+      <Dropdown
+        inputId={`${idPrefix}-${field}`}
+        placeholder={placeholder}
+        value={filter[field] ? String(filter[field]) : undefined}
+        options={barPeriodOptions}
+        showClear={field === timeAgoField}
+        onChange={(e: DropdownChangeEvent) =>
+          makeChange(field, e.value ?? "", index)
+        }
+      />{" "}
+    </span>
+  );
+
+  const bullish = (
+    <span key="bullish">
+      <Checkbox
+        inputId={`${idPrefix}-bullish`}
+        checked={isBullish(filter.bullish)}
+        onChange={(e: CheckboxChangeEvent) =>
+          makeChange("bullish", String(Boolean(e.checked)), index)
+        }
+      />
+      <label htmlFor={`${idPrefix}-bullish`}> Bullish </label>
+    </span>
+  );
+
+  const fastSlow = [
+    text("Fast period", "fastPeriod"),
+    text("Slow period", "slowPeriod"),
+  ];
+
   switch (varName) {
     case "percentchange":
-      input = (
-        <span>
-          <label> in last: </label>
-          <InputText
-            value={filter.timeAgo}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(timeAgoVarName, e.target.value, index, compareVar)
-            }
-          />
-          <label> units of time </label>
-        </span>
-      );
-      break;
+      return <span>{text("In last (periods)", timeAgoField)}</span>;
     case "pricePercentChangePercentile": {
-      const currentSessions = parseInt(filter.numberOfSessions || "20", 10);
+      const sessions = filter.numberOfSessions || "20";
+      const currentSessions = parseInt(sessions, 10);
       const maxSessions =
         period !== undefined ? MAX_PERCENTILE_SESSIONS[period] : undefined;
       const sessionsError =
@@ -64,29 +106,11 @@ export const getFilter = ({
         currentSessions > maxSessions
           ? `Number of sessions cannot exceed ${maxSessions} for a ${period}-minute period`
           : "";
-      input = (
+      return (
         <span>
-          <label> in last: </label>
-          <InputText
-            value={filter.timeAgo}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(timeAgoVarName, e.target.value, index, compareVar)
-            }
-          />
-          <label> units of time </label>
+          {text("In last (periods)", timeAgoField)}
           <br />
-          <label> Number of sessions: </label>
-          <InputText
-            value={filter.numberOfSessions || "20"}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}numberOfSessions`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
+          {text("Number of sessions", "numberOfSessions", "20")}
           {sessionsError && (
             <small style={{ color: "red", display: "block" }}>
               {sessionsError}
@@ -94,457 +118,100 @@ export const getFilter = ({
           )}
         </span>
       );
-      break;
     }
-    case "macdSignal":
-      input = (
-        <>
-          <label> Fast period: </label>
-          <InputText
-            value={filter.fastPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}fastPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <br />
-          <label> Slow period: </label>
-          <InputText
-            value={filter.slowPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}slowPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-
-          <label> Signal Period: </label>
-          <InputText
-            value={filter.signalPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}signalPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-        </>
-      );
-      break;
-    case "macd":
-      input = (
-        <>
-          <label> Fast period: </label>
-          <InputText
-            value={filter.fastPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}fastPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <br />
-          <label> Slow period: </label>
-          <InputText
-            value={filter.slowPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}slowPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-        </>
-      );
-      break;
-    case "tsi":
-      input = (
-        <>
-          <label> M period: </label>
-          <InputText
-            value={filter.emaPeriod1}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}mPeriod`, e.target.value, index, compareVar)
-            }
-          />
-          <br />
-          <label> N period: </label>
-          <InputText
-            value={filter.emaPeriod2}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}nPeriod`, e.target.value, index, compareVar)
-            }
-          />
-        </>
-      );
-      break;
-    case "mtsi":
-      input = (
-        <>
-          <label> M period: </label>
-          <InputText
-            value={filter.emaPeriod1}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}emaPeriod1`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <br />
-          <label> N period: </label>
-          <InputText
-            value={filter.emaPeriod2}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}emaPeriod2`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-
-          <label> Vwap period type: </label>
-          <Dropdown
-            placeholder="Select a period length"
-            value={filter.vwapPeriod}
-            options={[
-              { label: "1 minute", value: "1" },
-              { label: "5 minutes", value: "5" },
-              { label: "15 minutes", value: "15" },
-              { label: "30 minutes", value: "30" },
-            ]}
-            onChange={(e: DropdownChangeEvent) =>
-              makeChange(`${prefix}vwapPeriod`, e.value, index, compareVar)
-            }
-          ></Dropdown>
-        </>
-      );
-      break;
     case "priceEma":
     case "priceSma":
-    case "volumeEma":
+    case "volumeSma":
     case "bollingerUpper":
     case "bollingerLower":
     case "rsi":
-    case "adx":
-      input = (
+      return <span>{text("Period", timeAgoField)}</span>;
+    case "bollingerBands":
+      return (
         <span>
-          <label> Period: </label>
-          <InputText
-            value={compareVar ? filter.compareVarTimeAgo : filter.timeAgo}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(timeAgoVarName, e.target.value, index, compareVar)
-            }
-          />
+          {text("Period", timeAgoField)}
+          {text("Multiplier", "multiplier", "2")}
+          <span>
+            <label htmlFor={`${idPrefix}-band`}> Band: </label>
+            <Dropdown
+              inputId={`${idPrefix}-band`}
+              value={filter.band || "upper"}
+              options={bandOptions}
+              onChange={(e: DropdownChangeEvent) =>
+                makeChange("band", e.value, index)
+              }
+            />
+          </span>
         </span>
       );
-      break;
-    case "rsiCrossover":
-      input = (
+    case "vwap":
+      return (
+        <span>
+          {barPeriod("Bar period", timeAgoField, "Strategy period")}
+        </span>
+      );
+    case "macd":
+      return <>{fastSlow}</>;
+    case "macdSignal":
+    case "macdSignalLine":
+      return (
         <>
-          <label>Bullish</label>
-          <Checkbox
-            checked={Boolean(filter.bullish)}
-            onChange={(e: CheckboxChangeEvent) =>
-              makeChange(
-                `${prefix}bullish`,
-                String(e.checked),
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label>Rsi period</label>
-          <InputText
-            value={filter.period}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}period`, e.target.value, index, compareVar)
-            }
-          />
-          <label> Periods After: </label>
-          <InputText
-            value={filter.periodsAfter}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsAfter`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Periods Before: </label>
-          <InputText
-            value={filter.periodsBefore}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsBefore`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Crossover Level: </label>
-          <InputText
-            value={filter.crossoverLevel}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}crossoverLevel`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
+          {fastSlow}
+          {text("Signal period", "signalPeriod", "9")}
         </>
       );
-      break;
     case "macdCrossover":
-      input = (
+      return (
         <>
-          <label>Bullish</label>
-          <Checkbox
-            checked={Boolean(filter.bullish)}
-            onChange={(e: CheckboxChangeEvent) =>
-              makeChange(
-                `${prefix}bullish`,
-                String(e.checked),
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Fast period: </label>
-          <InputText
-            value={filter.fastPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}fastPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <br />
-          <label> Slow period: </label>
-          <InputText
-            value={filter.slowPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}slowPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-
-          <label> Signal Period: </label>
-          <InputText
-            value={filter.signalPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}signalPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Periods Above: </label>
-          <InputText
-            value={filter.periodsAfter}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsAfter`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Periods Below: </label>
-          <InputText
-            value={filter.periodsBefore}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsBefore`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Crossover Level: </label>
-          <InputText
-            value={filter.crossoverLevel}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}crossoverLevel`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
+          {bullish}
+          {fastSlow}
+          {text("Signal period", "signalPeriod", "9")}
+          {text("Periods before", "periodsBefore")}
+          {text("Periods after", "periodsAfter")}
         </>
       );
-      break;
-    case "macdDivergence":
-      input = (
+    case "rsiCrossover":
+      return (
         <>
-          <label>Bullish</label>
-          <Checkbox
-            checked={Boolean(filter.bullish)}
-            onChange={(e: CheckboxChangeEvent) =>
-              makeChange(
-                `${prefix}bullish`,
-                String(e.checked),
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label>Fast period</label>
-          <InputText
-            value={filter.fastPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}fastPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Slow period: </label>
-          <InputText
-            value={filter.slowPeriod}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}slowPeriod`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-
-          <label> Lookback period: </label>
-          <InputText
-            value={filter.lookback}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}lookback`, e.target.value, index, compareVar)
-            }
-          />
-
-          <label> Periods Before: </label>
-          <InputText
-            value={filter.periodsBefore}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsBefore`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Periods After: </label>
-          <InputText
-            value={filter.periodsAfter}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsAfter`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
+          {bullish}
+          {text("RSI period", "period")}
+          {text("Periods before", "periodsBefore")}
+          {text("Periods after", "periodsAfter")}
+          {text("Crossover level", "crossoverLevel", "50")}
         </>
       );
-      break;
     case "rsiDivergence":
-      input = (
+      return (
         <>
-          <label>Bullish</label>
-          <Checkbox
-            checked={Boolean(filter.bullish)}
-            onChange={(e: CheckboxChangeEvent) =>
-              makeChange(
-                `${prefix}bullish`,
-                String(e.checked),
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label>Rsi period</label>
-          <InputText
-            value={filter.period}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}period`, e.target.value, index, compareVar)
-            }
-          />
-
-          <label> Lookback period: </label>
-          <InputText
-            value={filter.lookback}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(`${prefix}lookback`, e.target.value, index, compareVar)
-            }
-          />
-          <label> Periods Before: </label>
-          <InputText
-            value={filter.periodsBefore}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsBefore`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
-          <label> Periods After: </label>
-          <InputText
-            value={filter.periodsAfter}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              makeChange(
-                `${prefix}periodsAfter`,
-                e.target.value,
-                index,
-                compareVar,
-              )
-            }
-          />
+          {bullish}
+          {text("RSI period", "period")}
+          {text("Lookback", "lookback")}
         </>
       );
-      break;
+    case "macdDivergence":
+      return (
+        <>
+          {bullish}
+          {fastSlow}
+          {text("Lookback", "lookback")}
+        </>
+      );
+    case "tsi":
+      return (
+        <>
+          {text("M period", "emaPeriod1")}
+          {text("N period", "emaPeriod2")}
+        </>
+      );
+    case "mtsi":
+      return (
+        <>
+          {text("M period", "emaPeriod1")}
+          {text("N period", "emaPeriod2")}
+          {barPeriod("VWAP bar period", "vwapPeriod", "Select a period")}
+        </>
+      );
     default:
-      input = null;
-      break;
+      return null;
   }
-  return input;
 };

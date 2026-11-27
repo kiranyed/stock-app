@@ -2,7 +2,8 @@ import { DataRetriever } from "../../run/data-retriever";
 import StockGroupMapper from "../../mappers/stock-group-mapper";
 import { MAX_STOCK_QUOTES_PER_REQUEST, PeriodType } from "../../shared/constants";
 import { DatabaseAPI } from "../../shared/services/db-api";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabAuth } from "../../providers/schwab/schwab-auth";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
 import { IStockGroupEntity } from "../../types/entity-types";
 
 type IStockGroupRow = Omit<IStockGroupEntity, "symbols"> & {
@@ -16,13 +17,13 @@ describe("Integration - DataRetriever", () => {
     await DatabaseAPI.createConnection();
 
     try {
-      await SchwabAPI.initialize();
-      await SchwabAPI.testAccessToken();
+      await SchwabAuth.initialize();
+      await SchwabAuth.getAccessToken();
       schwabReady = true;
     } catch {
       schwabReady = false;
     }
-  });
+  }, 60000);
 
   afterAll(async () => {
     if (DatabaseAPI.connectionExists()) {
@@ -39,9 +40,9 @@ describe("Integration - DataRetriever", () => {
     }
 
     const symbols = ["AAPL", "MSFT"];
-    const getStockDataMultiple = SchwabAPI.getStockDataMultiple.bind(SchwabAPI);
+    const getStockDataMultiple = SchwabClient.getQuotes.bind(SchwabClient);
     const schwabSpy = jest
-      .spyOn(SchwabAPI, "getStockDataMultiple")
+      .spyOn(SchwabClient, "getQuotes")
       .mockImplementation((stockNames: string) => getStockDataMultiple(stockNames));
 
     try {
@@ -87,13 +88,13 @@ describe("Integration - DataRetriever", () => {
     const expectedBatchCount = Math.ceil(
       symbols.length / MAX_STOCK_QUOTES_PER_REQUEST,
     );
-    const getStockDataMultiple = SchwabAPI.getStockDataMultiple.bind(SchwabAPI);
+    const getStockDataMultiple = SchwabClient.getQuotes.bind(SchwabClient);
     const rateLimitStatuses: number[] = [];
     const errorSpy = jest
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
     const schwabSpy = jest
-      .spyOn(SchwabAPI, "getStockDataMultiple")
+      .spyOn(SchwabClient, "getQuotes")
       .mockImplementation(async (stockNames: string) => {
         try {
           return await getStockDataMultiple(stockNames);

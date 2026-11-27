@@ -1,132 +1,42 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import {
-  getRealTransactions,
-  getSimulationTransactions,
-  IStrategyTransactionRequest,
-} from "../../routers/transaction-router";
-import TransactionRepository from "../../shared/services/repos/transaction-repository";
-import TransactionMapper from "../../mappers/transaction-mapper";
+import Error400 from "../../errors/error-400";
+import { getSimulationTransactions } from "../../routers/transaction-router";
+import { TransactionService } from "../../services/transaction-service";
 
-jest.mock("../../shared/services/repos/transaction-repository");
-jest.mock("../../mappers/transaction-mapper");
+jest.mock("../../services/transaction-service");
 
-describe("transactionRouter", () => {
-  let req: Partial<Request> & { query: { runId: string; pingTime: string } };
-  let res: Partial<Response>;
-  let next: NextFunction;
+const list = TransactionService.list as jest.Mock;
 
-  beforeEach(() => {
-    req = {
-      query: {
-        runId: "1",
-        pingTime: "1234123",
-      },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    } as unknown as Response;
-    next = jest.fn();
+const call = async (handler: typeof getSimulationTransactions, query: Record<string, unknown>) => {
+  const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+  const next = jest.fn();
+  await handler({ headers: { "user-id": "7" }, query } as unknown as Request, res as unknown as Response, next);
+  return { res, body: res.json.mock.calls[0]?.[0], error: next.mock.calls[0]?.[0] };
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  list.mockResolvedValue([{ runId: 1 }]);
+});
+
+describe("transaction routes", () => {
+  it("lists the caller's simulation transactions under simTransactions", async () => {
+    const { res, body } = await call(getSimulationTransactions, { runId: ["1", "2"], pingTime: "500" });
+    expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
+    expect(body).toEqual({ simTransactions: [{ runId: 1 }] });
+    expect(list).toHaveBeenCalledWith(7, "simulation", [1, 2], 500);
   });
 
-  describe("getSimulationTransactions", () => {
-    it("should return simulation transactions", async () => {
-      const mockEntities = [{ id: 1 }, { id: 2 }];
-      const mockTransactions = [
-        { id: 1, transaction: "test" },
-        { id: 2, transaction: "test" },
-      ];
-
-      (
-        TransactionRepository.getTransactionsSimulation as jest.Mock
-      ).mockResolvedValue(mockEntities);
-      (
-        TransactionMapper.convertEntityToTransaction as jest.Mock
-      ).mockImplementation((entity) =>
-        mockTransactions.find((t) => t.id === entity.id),
-      );
-
-      await getSimulationTransactions(
-        req as IStrategyTransactionRequest,
-        res as Response,
-        next,
-      );
-
-      expect(
-        TransactionRepository.getTransactionsSimulation,
-      ).toHaveBeenCalledWith([req.query.runId], parseInt(req.query.pingTime));
-      expect(
-        TransactionMapper.convertEntityToTransaction,
-      ).toHaveBeenCalledTimes(mockEntities.length);
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({
-        simTransactions: mockTransactions,
-      });
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (
-        TransactionRepository.getTransactionsSimulation as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      await getSimulationTransactions(
-        req as IStrategyTransactionRequest,
-        res as Response,
-        next,
-      );
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
-  });
-
-  describe("getRealTransactions", () => {
-    it("should return real transactions", async () => {
-      const mockEntities = [{ id: 1 }, { id: 2 }];
-      const mockTransactions = [
-        { id: 1, transaction: "test" },
-        { id: 2, transaction: "test" },
-      ];
-      (
-        TransactionRepository.getTransactionsReal as jest.Mock
-      ).mockResolvedValue(mockEntities);
-      (
-        TransactionMapper.convertEntityToTransaction as jest.Mock
-      ).mockImplementation((entity) =>
-        mockTransactions.find((t) => t.id === entity.id),
-      );
-
-      await getRealTransactions(
-        req as IStrategyTransactionRequest,
-        res as Response,
-        next,
-      );
-
-      expect(TransactionRepository.getTransactionsReal).toHaveBeenCalledWith(
-        [req.query.runId],
-        parseInt(req.query.pingTime),
-      );
-      expect(
-        TransactionMapper.convertEntityToTransaction,
-      ).toHaveBeenCalledTimes(mockEntities.length * 2); // 2 calls in the getSimulationTransactions test
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ transactions: mockTransactions });
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (
-        TransactionRepository.getTransactionsReal as jest.Mock
-      ).mockRejectedValue(mockError);
-
-      await getRealTransactions(
-        req as IStrategyTransactionRequest,
-        res as Response,
-        next,
-      );
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+  it.each([
+    ["no runId", { pingTime: "0" }],
+    ["a runId that isn't a number", { runId: "1) or (1=1", pingTime: "0" }],
+    ["no pingTime", { runId: "1" }],
+    ["a negative pingTime", { runId: "1", pingTime: "-5" }],
+    ["two pingTimes", { runId: "1", pingTime: ["1", "2"] }],
+  ])("rejects %s with a 400", async (_, query) => {
+    const { error } = await call(getSimulationTransactions, query);
+    expect(error).toBeInstanceOf(Error400);
+    expect(list).not.toHaveBeenCalled();
   });
 });

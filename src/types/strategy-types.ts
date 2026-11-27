@@ -131,6 +131,8 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
   }[Keys];
 
 interface IScreenerOptional {
+  /** Unique within the strategy and kept across edits (screeners format 2; see strategy-schema.ts). */
+  id?: string;
   flags?: IFlagFilterGroupPair[];
   buySellFilters?: IFilterGroupPair;
   shortCoverFilters?: IFilterGroupPair;

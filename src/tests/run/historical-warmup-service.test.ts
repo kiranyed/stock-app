@@ -1,118 +1,90 @@
 import { BackTestHelper } from "../../back-testing/back-test-helper";
-import { BackTestService } from "../../run/back-test-service";
-import { DataHandler } from "../../run/data-handler";
 import { HistoricalWarmupService } from "../../run/historical-warmup-service";
-import { MemoryType, PeriodType } from "../../shared/constants";
-import { StockTradeUtil } from "../../shared/utilities/stock-trade";
-import { IInitializedJobData, IStockScreenerJob } from "../../types/data-processing-types";
-import { IStockGroup } from "../../types/entity-types";
+import { LiveMasterJob } from "../../shared/classes/live-master-job";
+import { PeriodType } from "../../shared/constants";
+import { ICandle, ICandleDataMap, ITestConfig } from "../../types/back-test-types";
+import {
+  ProbeBackTest,
+  etTime,
+  fedIntraday,
+  sessionTimes,
+  strategy,
+  walkCandles,
+  weekdays,
+  wilderRsi,
+} from "../golden/golden-harness";
 
-jest.mock("../../back-testing/back-test-helper");
-jest.mock("../../run/back-test-service");
-jest.mock("../../run/data-handler");
-jest.mock("../../shared/utilities/stock-trade");
+const SYM = "AAA";
+const group = { id: 1, name: "g", symbols: [SYM] };
+// Tuesday 2025-07-15, 12:00 ET
+const now = etTime("2025-07-15", "12:00");
 
-describe("HistoricalWarmupService", () => {
-  let mockJobs: IStockScreenerJob[];
-  let mockGroup: IStockGroup;
-  let mockSlice: IInitializedJobData;
-  let helperInstance: {
-    initCandleData: jest.Mock;
-    getTestData: jest.Mock;
-  };
+const days = weekdays("2025-05-01", 52).filter((d) => d <= "2025-07-15");
+const dayCandles = walkCandles(days.map((d) => etTime(d, "15:59")), 1, 100, { vol: 0.02 });
+const halfHourByDay: Record<string, ICandle[]> = {};
+days.slice(-4).forEach((d, i) => (halfHourByDay[d] = walkCandles(sessionTimes(d, 30), 10 + i, 100, { vol: 0.01 })));
+const source: Partial<Record<PeriodType, ICandle[]>> = {
+  [PeriodType.DAY]: dayCandles,
+  [PeriodType.THIRTY_MINUTES]: Object.values(halfHourByDay).flat(),
+};
 
-  beforeEach(() => {
-    mockJobs = [{} as IStockScreenerJob];
-    mockGroup = { id: 1, name: "Test Group", symbols: ["AAPL"] };
-    mockSlice = {
-      newNames: {
-        [PeriodType.MINUTE]: [],
-        [PeriodType.FIVE_MINUTES]: [],
-        [PeriodType.TEN_MINUTES]: [],
-        [PeriodType.THIRTY_MINUTES]: [],
-        [PeriodType.HOUR]: [],
-        [PeriodType.DAY]: [],
-      },
-      newFilterData: {
-        [PeriodType.MINUTE]: {},
-        [PeriodType.FIVE_MINUTES]: {},
-        [PeriodType.TEN_MINUTES]: {},
-        [PeriodType.THIRTY_MINUTES]: {},
-        [PeriodType.HOUR]: {},
-        [PeriodType.DAY]: {},
-      },
-      newMemories: {
-        [PeriodType.MINUTE]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-        [PeriodType.FIVE_MINUTES]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-        [PeriodType.TEN_MINUTES]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-        [PeriodType.THIRTY_MINUTES]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-        [PeriodType.HOUR]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-        [PeriodType.DAY]: { [MemoryType.PRICE]: {}, [MemoryType.VOLUME]: {} },
-      },
-    };
-    helperInstance = {
-      initCandleData: jest.fn().mockResolvedValue(undefined),
-      getTestData: jest.fn().mockReturnValue({}),
-    };
+let requested: { config: ITestConfig; periods: PeriodType[] }[];
 
-    (BackTestHelper as jest.Mock).mockImplementation(() => helperInstance);
-    (BackTestService.iterateThroughCandlesAndRun as jest.Mock).mockImplementation(
-      () => {},
-    );
-    (StockTradeUtil.getEastCoastDate as jest.Mock).mockImplementation(
-      (date: Date) => date,
-    );
-    (DataHandler.adjustMemory as jest.Mock).mockImplementation(() => {});
-    (DataHandler.processDataBackTest as jest.Mock).mockImplementation(() => {});
+beforeEach(() => {
+  requested = [];
+  jest
+    .spyOn(BackTestHelper.prototype, "initCandleData")
+    .mockImplementation(async function (this: BackTestHelper, config, periods) {
+      requested.push({ config, periods });
+      const maps: Partial<Record<PeriodType, ICandleDataMap>> = {};
+      for (const p of periods) {
+        const candles = (source[p] ?? []).filter((c) => c.datetime >= config.startTime);
+        maps[p] = { [SYM]: { empty: false, symbol: SYM, index: 0, candles } };
+      }
+      (this as unknown as { candleData: typeof maps }).candleData = maps;
+      return maps;
+    });
+});
+
+afterEach(() => jest.restoreAllMocks());
+
+describe("HistoricalWarmupService.warm", () => {
+  it("fetches nothing when no indicator needs history", async () => {
+    const job = new ProbeBackTest(strategy(PeriodType.DAY, [{ varName: "price", operator: ">", compareVal: "0" }]));
+    await HistoricalWarmupService.warm([job], group, now);
+    expect(requested).toEqual([]);
   });
 
-  it("should short-circuit when no day symbols need warming", async () => {
-    const result = await HistoricalWarmupService.warmInitializedSlice(
-      mockJobs,
-      mockGroup,
-      mockSlice,
-    );
+  it("warms a DAY SMA from the sessions before today", async () => {
+    const job = new ProbeBackTest(strategy(PeriodType.DAY, [{ varName: "priceSma", timeAgo: "20", operator: ">", compareVal: "0" }]));
+    const warmed = await HistoricalWarmupService.warm([job], group, now);
 
-    expect(result).toBe(mockSlice);
-    expect(helperInstance.initCandleData).not.toHaveBeenCalled();
-    expect(BackTestService.iterateThroughCandlesAndRun).not.toHaveBeenCalled();
+    expect(requested[0].periods).toEqual([PeriodType.DAY]);
+    const before = dayCandles.filter((c) => c.datetime < now).slice(-20);
+    const expected = before.reduce((a, c) => a + c.close, 0) / 20;
+    expect(warmed.get(SYM, PeriodType.DAY, "priceSma20")?.value).toBeCloseTo(expected, 9);
   });
 
-  it("should compute the daily warmup range from maxSpace", async () => {
-    mockSlice.newNames[PeriodType.DAY] = ["AAPL"];
-    mockSlice.newMemories[PeriodType.DAY][MemoryType.PRICE] = {
-      AAPL: { space: 20, list: [], lastTime: 0 },
-    };
+  it("warms a 30-minute RSI14 from prior sessions and today's bars so far", async () => {
+    const job = new ProbeBackTest(strategy(PeriodType.THIRTY_MINUTES, [{ varName: "rsi", timeAgo: "14", operator: ">", compareVal: "0" }]));
+    const warmed = await HistoricalWarmupService.warm([job], group, now);
 
-    await HistoricalWarmupService.warmInitializedSlice(
-      mockJobs,
-      mockGroup,
-      mockSlice,
-      Date.UTC(2024, 0, 31, 21, 0, 0),
-    );
-
-    const [config, periods, symbols] = helperInstance.initCandleData.mock.calls[0];
-    expect(config.endTime).toBe(new Date(2024, 0, 30, 15, 59, 0).getTime());
-    expect(config.endTime - config.startTime).toBe(33 * 86400000);
-    expect(periods).toEqual([PeriodType.DAY]);
-    expect(symbols).toEqual(["AAPL"]);
-    expect(BackTestService.iterateThroughCandlesAndRun).toHaveBeenCalled();
+    const fed = fedIntraday(halfHourByDay).filter((b) => b.t < now);
+    const ref = wilderRsi(fed.map((b) => b.close), 14);
+    expect(Number.isFinite(ref[ref.length - 1])).toBe(true);
+    expect(warmed.get(SYM, PeriodType.THIRTY_MINUTES, "rsi14")?.value).toBeCloseTo(ref[ref.length - 1], 9);
   });
 
-  it("should move warmup end time to Friday when current day is Monday", async () => {
-    mockSlice.newNames[PeriodType.DAY] = ["AAPL"];
-    mockSlice.newMemories[PeriodType.DAY][MemoryType.PRICE] = {
-      AAPL: { space: 2, list: [], lastTime: 0 },
-    };
+  it("LiveMasterJob.addJobs starts new indicators from the warmed state and carries on live", async () => {
+    const job = new ProbeBackTest(strategy(PeriodType.THIRTY_MINUTES, [{ varName: "rsi", timeAgo: "14", operator: ">", compareVal: "0" }]));
+    const warmed = await HistoricalWarmupService.warm([job], group, now);
+    const master = new LiveMasterJob([], group);
+    master.addJobs([job], group, warmed);
 
-    await HistoricalWarmupService.warmInitializedSlice(
-      mockJobs,
-      mockGroup,
-      mockSlice,
-      Date.UTC(2024, 0, 8, 21, 0, 0),
-    );
-
-    const [config] = helperInstance.initCandleData.mock.calls[0];
-    expect(config.endTime).toBe(new Date(2024, 0, 5, 15, 59, 0).getTime());
+    const fed = fedIntraday(halfHourByDay).filter((b) => b.t < now);
+    const next = 101.5;
+    master.handleNewData([{ symbol: SYM, price: next, datetime: now, volume: 1000 }]);
+    const ref = wilderRsi([...fed.map((b) => b.close), next], 14);
+    expect(job.getVars()["rsi14"][SYM]).toBeCloseTo(ref[ref.length - 1], 9);
   });
 });

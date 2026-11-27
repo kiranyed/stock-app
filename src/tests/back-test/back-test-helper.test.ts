@@ -1,13 +1,11 @@
-import { PeriodType, CONSTANTS } from "../../shared/constants";
+import { PeriodType } from "../../shared/constants";
 import { IAnalysisData } from "../../analysis/analysis-types";
 import { BackTestHelper } from "../../back-testing/back-test-helper";
-import { SchwabCandleSource } from "../../back-testing/candle-sources/schwab-candle-source";
-import { PolygonCandleSource } from "../../back-testing/candle-sources/polygon-candle-source";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabMarketData } from "../../providers/schwab/schwab-market-data";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
 import { ICandleData } from "../../types/back-test-types";
 import { IFilter } from "../../types/strategy-types";
 
-jest.mock("../../shared/services/trading-api");
 jest.mock("../../shared/utilities/time-util", () => ({
   getOffset: jest.fn().mockReturnValue(0),
 }));
@@ -21,7 +19,7 @@ describe("BackTestHelper", () => {
   let backTestHelper: BackTestHelper;
 
   beforeAll(() => {
-    backTestHelper = new BackTestHelper(new SchwabCandleSource());
+    backTestHelper = new BackTestHelper(new SchwabMarketData());
   });
 
   const mockAppleCandleData: ICandleData = {
@@ -82,10 +80,10 @@ describe("BackTestHelper", () => {
       const config = { startTime: mockStartTime, endTime: mockEndTime };
       const mockStockNames = ["AAPL", "GOOGL"];
       jest
-        .spyOn(SchwabAPI, "getHistoryWithBounds")
+        .spyOn(SchwabClient, "getPriceHistory")
         .mockResolvedValueOnce(mockCandleData);
       jest
-        .spyOn(SchwabAPI, "getHistoryWithBounds")
+        .spyOn(SchwabClient, "getPriceHistory")
         .mockResolvedValueOnce(mockCandleData2);
 
       const result = await backTestHelper.initCandleData(
@@ -99,92 +97,6 @@ describe("BackTestHelper", () => {
           AAPL: { ...mockCandleData },
           GOOGL: { ...mockCandleData2 },
         },
-      });
-    });
-
-    describe("UTC branch adjustments (Polygon)", () => {
-      // System time fixed to 2024-01-15T12:00:00Z (EST = UTC-5 → easternOffsetMin = 300)
-      // Candle time chosen so that `mins` hits the target switch case.
-      // mins = (1440 + 60*date.getHours() + date.getMinutes() - 300) % 1440  (UTC machine)
-
-      afterEach(() => {
-        jest.useRealTimers();
-        jest.clearAllMocks();
-      });
-
-      it("case 60: isUTC+non-Schwab adjusts datetime by +16h-1m", async () => {
-        jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
-        jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "UTC" }) }) as unknown as Intl.DateTimeFormat);
-
-        const helper = new BackTestHelper(new PolygonCandleSource());
-        // UTC 06:00 → mins = (1440 + 360 - 300) % 1440 = 60
-        const candleTime = Date.UTC(2024, 0, 15, 6, 0, 0);
-
-        jest.spyOn(SchwabAPI, "getStockHistoryPolygon").mockResolvedValue({
-          ticker: "AAPL",
-          results: [{ t: candleTime, o: 10, h: 11, l: 9, c: 10.5, v: 1000 }],
-        } as Awaited<ReturnType<typeof SchwabAPI.getStockHistoryPolygon>>);
-
-        const result = await helper.initCandleData(
-          { startTime: candleTime - 86400000, endTime: candleTime + 86400000 },
-          [PeriodType.DAY],
-          ["AAPL"],
-        );
-
-        expect(result[PeriodType.DAY]?.["AAPL"]?.candles?.[0]?.datetime).toBe(
-          candleTime +
-            (16 * CONSTANTS.MILLIS_IN_HOUR - CONSTANTS.MILLIS_IN_MINUTE),
-        );
-      });
-
-      it("default: isUTC+non-Schwab+mins=1380 adjusts datetime by +16h-1m", async () => {
-        jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
-        jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "UTC" }) }) as unknown as Intl.DateTimeFormat);
-
-        const helper = new BackTestHelper(new PolygonCandleSource());
-        // UTC 04:00 → mins = (1440 + 240 - 300) % 1440 = 1380
-        const candleTime = Date.UTC(2024, 0, 15, 4, 0, 0);
-
-        jest.spyOn(SchwabAPI, "getStockHistoryPolygon").mockResolvedValue({
-          ticker: "AAPL",
-          results: [{ t: candleTime, o: 10, h: 11, l: 9, c: 10.5, v: 1000 }],
-        } as Awaited<ReturnType<typeof SchwabAPI.getStockHistoryPolygon>>);
-
-        const result = await helper.initCandleData(
-          { startTime: candleTime - 86400000, endTime: candleTime + 86400000 },
-          [PeriodType.DAY],
-          ["AAPL"],
-        );
-
-        expect(result[PeriodType.DAY]?.["AAPL"]?.candles?.[0]?.datetime).toBe(
-          candleTime +
-            (16 * CONSTANTS.MILLIS_IN_HOUR - CONSTANTS.MILLIS_IN_MINUTE),
-        );
-      });
-
-      it("default: non-UTC path throws for unrecognized candle time", async () => {
-        jest.useFakeTimers().setSystemTime(new Date("2024-01-15T12:00:00Z"));
-        jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({ resolvedOptions: () => ({ timeZone: "America/New_York" }) }) as unknown as Intl.DateTimeFormat);
-
-        const helper = new BackTestHelper(new PolygonCandleSource());
-        // Same UTC 04:00 candle → mins=1380, but isUTC=false → throwError stays true → throws
-        const candleTime = Date.UTC(2024, 0, 15, 4, 0, 0);
-
-        jest.spyOn(SchwabAPI, "getStockHistoryPolygon").mockResolvedValue({
-          ticker: "AAPL",
-          results: [{ t: candleTime, o: 10, h: 11, l: 9, c: 10.5, v: 1000 }],
-        } as Awaited<ReturnType<typeof SchwabAPI.getStockHistoryPolygon>>);
-
-        await expect(
-          helper.initCandleData(
-            {
-              startTime: candleTime - 86400000,
-              endTime: candleTime + 86400000,
-            },
-            [PeriodType.DAY],
-            ["AAPL"],
-          ),
-        ).rejects.toThrow(/Invalid time for daily candle adjustment/);
       });
     });
   });
@@ -768,7 +680,9 @@ describe("BackTestHelper", () => {
     });
   });
 
-  describe("getHistory", () => {
+  describe("SchwabMarketData.getCandles batching", () => {
+    beforeEach(() => jest.clearAllMocks());
+
     afterEach(() => {
       jest.useRealTimers();
       jest.clearAllMocks();
@@ -776,7 +690,7 @@ describe("BackTestHelper", () => {
 
     it("creates requests lazily per batch and does not start later batch early", async () => {
       jest.useFakeTimers();
-      const source = new SchwabCandleSource();
+      const source = new SchwabMarketData();
       const symbols = Array.from({ length: 251 }, (_, i) => `SYM${i}`);
 
       const resolvedCandle: ICandleData = {
@@ -792,7 +706,7 @@ describe("BackTestHelper", () => {
       });
 
       const spy = jest
-        .spyOn(SchwabAPI, "getHistoryWithBounds")
+        .spyOn(SchwabClient, "getPriceHistory")
         .mockImplementation((symbol: string) => {
           if (symbol === "SYM0") {
             return firstPending;
@@ -800,7 +714,7 @@ describe("BackTestHelper", () => {
           return Promise.resolve({ ...resolvedCandle, symbol });
         });
 
-      const historyPromise = source.fetch(PeriodType.MINUTE, symbols, 1, 2);
+      const historyPromise = source.getCandles(PeriodType.MINUTE, symbols, 1, 2);
 
       await Promise.resolve();
       expect(spy).toHaveBeenCalledTimes(250);
@@ -816,15 +730,15 @@ describe("BackTestHelper", () => {
     });
 
     it("rejects when a batch request fails", async () => {
-      const source = new SchwabCandleSource();
+      const source = new SchwabMarketData();
       const rejection = new Error("429 too many requests");
 
       jest
-        .spyOn(SchwabAPI, "getHistoryWithBounds")
+        .spyOn(SchwabClient, "getPriceHistory")
         .mockRejectedValueOnce(rejection);
 
       await expect(
-        source.fetch(PeriodType.MINUTE, ["AAPL"], 1, 2),
+        source.getCandles(PeriodType.MINUTE, ["AAPL"], 1, 2),
       ).rejects.toThrow("429 too many requests");
     });
   });

@@ -3,8 +3,6 @@ import Error400 from "../errors/error-400";
 import { Like } from "../types/general-types";
 import { IFilter } from "../types/strategy-types";
 import { AuthenticatedRequest } from "../types/middleware-types";
-import { AccountType } from "../shared/enums";
-import { StrategyUtil } from "../shared/utilities/strategy-util";
 import { CONSTANTS } from "../shared/constants";
 
 enum VAR_NAME {
@@ -69,20 +67,6 @@ function checkVarName(varName: string) {
   }
 }
 
-export function accountTypeCheck(
-  accountType: unknown,
-): asserts accountType is AccountType {
-  if (
-    !(
-      typeof accountType === "string" &&
-      (accountType === AccountType.REGULAR ||
-        accountType === AccountType.TRADING)
-    )
-  ) {
-    throw new Error400("accountType must be either 'regular' or 'trading'");
-  }
-}
-
 export function checkAndGetUserId(req: Request): number {
   userIdCheck(req);
   return getUserIdFromRequest(req);
@@ -96,6 +80,12 @@ export function userIdCheck(req: Request): asserts req is AuthenticatedRequest {
   if (!req.headers["user-id"] || Array.isArray(req.headers["user-id"])) {
     throw new Error400("userId is missing");
   }
+}
+
+/** The caller's user id, which authMiddleware sets from the verified token. */
+export function requireUserId(req: Request): number {
+  userIdCheck(req);
+  return getUserIdFromRequest(req);
 }
 
 export function isString(value: unknown): value is string {
@@ -183,15 +173,6 @@ export function validateFilter(filter: IFilter, strategyPeriod?: number) {
   }
   if (varName === VAR_NAME.PERCENT_CHANGE) {
     const filterCasted = filter;
-    if (StrategyUtil.isMtsiFilter(filterCasted)) {
-      if (
-        !filterCasted.emaPeriod1 ||
-        !filterCasted.emaPeriod2 ||
-        !filterCasted.vwapPeriod
-      ) {
-        throw new Error400("Must fill in the EMA periods and VWAP period");
-      }
-    }
     if (filterCasted.timeAgo) {
       const parsed = parseInt(filterCasted.timeAgo);
       if (!Number.isInteger(parsed)) {

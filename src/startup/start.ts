@@ -1,26 +1,27 @@
 import AppServer from "./app-server";
-import { SchwabAPI } from "../shared/services/trading-api";
-import { PositionMonitorJob } from "../run/position-monitor-job";
+import { SchwabAuth } from "../providers/schwab/schwab-auth";
 
 import dotenv from "dotenv";
 import { DatabaseAPI } from "../shared/services/db-api";
+import { RunService } from "../services/run-service";
+import { BackTestPool } from "../run/back-test-pool";
+import { AlertOutbox } from "../notify/alert-outbox";
 dotenv.config();
 
 const server = new AppServer();
 
 
 const boot = async () => {
+  const bootTime = Date.now();
   await DatabaseAPI.createConnection();
-  await SchwabAPI.initialize();
+  await SchwabAuth.initialize();
+  BackTestPool.start();
+  AlertOutbox.start();
   server.start(3001);
   console.debug('booting up');
-  
-  // 🆕 Start position risk monitor as a separate service
-  try {
-    await PositionMonitorJob.start();
-  } catch (err) {
-    console.error("[Startup] Failed to start position monitor job:", err);
-  }
+
+  // not awaited: warming up every group can take minutes, and nothing else should wait for it
+  RunService.restoreRuns(bootTime).catch((err) => console.error("[Startup] Failed to reload runs:", err));
 };
 
 

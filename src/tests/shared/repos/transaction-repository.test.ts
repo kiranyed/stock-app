@@ -1,176 +1,53 @@
 import { DatabaseAPI } from "../../../shared/services/db-api";
 import TransactionRepository from "../../../shared/services/repos/transaction-repository";
-import { ILiveJobRunEntity } from "../../../types/entity-types";
 
 jest.mock("../../../shared/services/db-api");
 
-describe("TransactionRepository", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
+const insert = DatabaseAPI.insert as jest.Mock;
+const query = DatabaseAPI.query as jest.Mock;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.spyOn(console, "error").mockImplementation(() => undefined);
+});
+
+describe("TransactionRepository recording", () => {
+  it("records a simulation transaction with placeholders and a quoted `long`", async () => {
+    insert.mockResolvedValue(11);
+    await expect(TransactionRepository.recordTransactionSim("AAPL", 1000, 25.5, 12.5, true, 7)).resolves.toBe(11);
+    const [sql, params] = insert.mock.calls[0];
+    expect(sql).toBe(
+      "insert into transaction_sim (symbol, datetime, net_gain, net_percent_gain, `long`, run_id) values (?, ?, ?, ?, ?, ?)",
+    );
+    expect(params).toEqual(["AAPL", 1000, 25.5, 12.5, true, 7]);
   });
 
-  describe("recordTransaction", () => {
-    it("should record a transaction", async () => {
-      const symbol = "AAPL";
-      const datetime = 1622505600;
-      const profit = 100;
-      const percent = 10;
-      const long = true;
-      const runId = 1;
-      const valueString = [symbol, datetime, profit, percent, long, runId]
-        .map((param) => (typeof param === "string" ? `'${param}'` : param))
-        .join(",");
-      const query = `insert into transaction_real (symbol, datetime, net_gain, net_percent_gain, long, run_id) values (${valueString})`;
-
-      await TransactionRepository.recordTransaction(
-        symbol,
-        datetime,
-        profit,
-        percent,
-        long,
-        runId,
-      );
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-
-    it("should throw an error if runId is 0", () => {
-      expect(() => {
-        TransactionRepository.recordTransaction(
-          "AAPL",
-          1622505600,
-          100,
-          10,
-          true,
-          0,
-        );
-      }).toThrow("runId not set");
-    });
+  it("logs instead of rejecting when the insert fails, so the trading loop can't crash", async () => {
+    insert.mockRejectedValue(Object.assign(new Error("parse error"), { code: "ER_PARSE_ERROR" }));
+    await expect(TransactionRepository.recordTransactionSim("AAPL", 1, 1, 1, true, 7)).resolves.toBeUndefined();
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("run 7 (AAPL)"), expect.any(Error));
   });
 
-  describe("recordTransactionSim", () => {
-    it("should record a simulation transaction", async () => {
-      const symbol = "AAPL";
-      const datetime = 1622505600;
-      const profit = 100;
-      const percent = 10;
-      const long = true;
-      const runId = 1;
-      const valueString = [symbol, datetime, profit, percent, long, runId]
-        .map((param) => (typeof param === "string" ? `'${param}'` : param))
-        .join(",");
-      const query = `insert into transaction_sim (symbol, datetime, net_gain, net_percent_gain, long, run_id) values (${valueString})`;
+  it("refuses a missing run id without touching the database", async () => {
+    await expect(TransactionRepository.recordTransactionSim("AAPL", 1, 1, 1, true, 0)).resolves.toBeUndefined();
+    expect(insert).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalled();
+  });
+});
 
-      await TransactionRepository.recordTransactionSim(
-        symbol,
-        datetime,
-        profit,
-        percent,
-        long,
-        runId,
-      );
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-
-    it("should throw an error if runId is 0", () => {
-      expect(() => {
-        TransactionRepository.recordTransactionSim(
-          "AAPL",
-          1622505600,
-          100,
-          10,
-          true,
-          0,
-        );
-      }).toThrow("runId not set");
-    });
+describe("TransactionRepository.getOwnedTransactions", () => {
+  it("reads simulation transactions only through the run's strategy owner", async () => {
+    query.mockResolvedValue([]);
+    await TransactionRepository.getOwnedTransactions("simulation", [1, 2], 7, 500);
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toContain("from transaction_sim t");
+    expect(sql).toMatch(/join live_job j on j.id = t.run_id join strategy s on s.id = j.strategy_id/);
+    expect(sql).toMatch(/t.run_id in \(\?\) and s.user_id = \? and t.datetime > \?/);
+    expect(params).toEqual([[1, 2], 7, 500]);
   });
 
-  describe("getTransactionsReal", () => {
-    it("should get real transactions", async () => {
-      const runIds = ["1", "2"];
-      const datetime = 1622505600;
-      const query = `select run_id, symbol, datetime, net_percent_gain from transaction_real where run_id in (${runIds.join(",")}) and datetime > ${datetime}`;
-
-      await TransactionRepository.getTransactionsReal(runIds, datetime);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-
-    it("should default datetime to 0 for real transactions", async () => {
-      const runIds = ["1", "2"];
-      const query = `select run_id, symbol, datetime, net_percent_gain from transaction_real where run_id in (${runIds.join(",")}) and datetime > 0`;
-
-      await TransactionRepository.getTransactionsReal(runIds);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-  });
-
-  describe("getTransactionsSimulation", () => {
-    it("should get simulation transactions", async () => {
-      const runIds = ["1", "2"];
-      const datetime = 1622505600;
-      const query = `select run_id, symbol, datetime, net_percent_gain from transaction_sim where run_id in (${runIds.join(",")}) and datetime > ${datetime}`;
-
-      await TransactionRepository.getTransactionsSimulation(runIds, datetime);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-
-    it("should default datetime to 0 for simulation transactions", async () => {
-      const runIds = ["1", "2"];
-      const query = `select run_id, symbol, datetime, net_percent_gain from transaction_sim where run_id in (${runIds.join(",")}) and datetime > 0`;
-
-      await TransactionRepository.getTransactionsSimulation(runIds);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-  });
-
-  describe("getTransactionsForRun", () => {
-    it("should get transactions for a run", async () => {
-      const runId = 1;
-      const query = `select net_percent_gain from transaction_sim where run_id=${runId}`;
-
-      await TransactionRepository.getTransactionsForRun(runId);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
-  });
-
-  describe("getTotal", () => {
-    it("should get total gain percent for runs", async () => {
-      const runRows: ILiveJobRunEntity[] = [
-        {
-          id: 1,
-          start_time: 0,
-          end_time: 0,
-          group_id: 0,
-          status: "",
-          position_size: 0,
-          open_by: 0,
-          strategy_id: 0,
-          close_by: 0,
-        },
-        {
-          id: 2,
-          start_time: 0,
-          end_time: 0,
-          group_id: 0,
-          status: "",
-          position_size: 0,
-          open_by: 0,
-          strategy_id: 0,
-          close_by: 0,
-        },
-      ];
-      const query = `select SUM(net_percent_gain) as gainPercent, run_id from transaction_sim where run_id in (${runRows.map((row) => row.id).join(",")})`;
-
-      await TransactionRepository.getTotal(runRows);
-
-      expect(DatabaseAPI.runQuery).toHaveBeenCalledWith(query);
-    });
+  it("skips the database for no run ids", async () => {
+    await expect(TransactionRepository.getOwnedTransactions("simulation", [], 7)).resolves.toEqual([]);
+    expect(query).not.toHaveBeenCalled();
   });
 });

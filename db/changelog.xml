@@ -49,4 +49,67 @@
             splitStatements="true"
             stripComments="true"/>
     </changeSet>
+    <changeSet id="widen-transaction-percent" author="claude">
+        <sqlFile
+            path="widen-transaction-percent.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    <changeSet id="live-job-notify-on-entry" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="live_job" columnName="notify_on_entry"/></not>
+        </preConditions>
+        <sqlFile
+            path="live-job-notify-on-entry.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    <changeSet id="alert-outbox" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="alert_outbox"/></not>
+        </preConditions>
+        <sqlFile
+            path="alert-outbox.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    <changeSet id="paper-position" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="paper_position"/></not>
+        </preConditions>
+        <sqlFile
+            path="paper-position.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    <changeSet id="alert-outbox-signal-index" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="alert_outbox" indexName="user_channel_sent"/></not>
+        </preConditions>
+        <sqlFile
+            path="alert-outbox-signal-index.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
+    <changeSet id="strategy-screeners-version" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="strategy" columnName="screeners_version"/></not>
+        </preConditions>
+        <sqlFile
+            path="strategy-screeners-version.sql"
+            relativeToChangelogFile="true"
+            encoding="UTF-8"
+            splitStatements="true"
+            stripComments="true"/>
+    </changeSet>
 </databaseChangeLog>

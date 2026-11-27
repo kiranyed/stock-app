@@ -11,41 +11,10 @@ export interface IGain {
   gain: number;
 }
 
-export interface ChartStockItem {
-  candles: { time: number; price: number; datetime: number }[];
-  postEarningsGain: number;
-  symbol: string;
-}
-
-export interface IChartStockData {
-  obj: ChartStockItem[];
-}
-
-export type SchwabTransaction = {
-  transactionDate: string;
-  transactionItem: {
-    instrument: {
-      symbol: string;
-    };
-    price: number;
-    instruction: string;
-    amount: number;
-  };
-};
-
 export interface IAnalysisData {
   time: number;
   symbol: string;
   [key: string]: string | number;
-}
-
-export interface IOrder {
-  symbol: string;
-  orderType: string;
-  marketOrder: boolean;
-  shares: number;
-  price: number;
-  option: boolean;
 }
 
 export interface IStrategyWithIndex extends IStrategy {
@@ -227,4 +196,20 @@ export interface IPriceQuotes {
 }
 export interface IUserToken {
   token: string;
+}
+
+/** GET /api/settings */
+export interface IAppSettings {
+  deployment: "self-hosted" | "hosted";
+  marketData: { provider: string; schwabSignIn: boolean };
+  alerts: { email: boolean; sms: boolean };
+  backTests: { workers: number; perUser: number; timeoutMs: number };
+}
+
+/** GET /api/schwab/status */
+export interface ISchwabStatus {
+  signedIn: boolean;
+  /** null when the sign-in time is unknown */
+  refreshExpiresAt: number | null;
+  accessExpiresAt: number | null;
 }

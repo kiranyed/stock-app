@@ -4,9 +4,10 @@ import {
   validateAnalysisRequest,
   validateVariableCheckRequest,
 } from "../middleware/analysis-middleware";
-import { BackTestService } from "../run/back-test-service";
+import { BackTestPool } from "../run/back-test-pool";
 import { ScreenerJobService } from "../shared/services/screener-job-service";
 import { VariableCheckService } from "../shared/services/variable-check-service";
+import { requireUserId as userOf } from "../middleware/shared-funcs";
 
 const router = express.Router();
 
@@ -22,20 +23,18 @@ const getData = async (req: Request, res: Response, next: NextFunction) => {
       dataFilters,
     } = body;
 
-    const { analyses, group } = await ScreenerJobService.setUpAnalysisBackTest(
+    const userId = userOf(req);
+    const group = await ScreenerJobService.getOwnedGroup(userId, groupId);
+    const { results: retVal } = await BackTestPool.run(userId, {
+      kind: "analysis",
       period,
-      {
+      scenarioFilterGroup: {
         filters: scenarioFilters,
         connectors: Array(scenarioFilters.length - 1).fill("AND"),
       },
       dataFilters,
-      groupId,
-    );
-
-    const retVal = await BackTestService.runBackTests([analyses], group, {
-      startTime,
-      endTime,
-      analyze: true,
+      group,
+      config: { startTime, endTime, analyze: true },
     });
 
     // Return the first element because we only have one analysis
@@ -54,6 +53,7 @@ const checkVariables = async (
     const { variables, groupId, startTime, endTime } = req.body;
 
     const result = await VariableCheckService.getVariableValuesForGroup(
+      userOf(req),
       groupId,
       variables,
       startTime,

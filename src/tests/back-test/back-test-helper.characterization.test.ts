@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { BackTestHelper } from "../../back-testing/back-test-helper";
-import { SchwabCandleSource } from "../../back-testing/candle-sources/schwab-candle-source";
-import { PolygonCandleSource } from "../../back-testing/candle-sources/polygon-candle-source";
+import { SchwabMarketData } from "../../providers/schwab/schwab-market-data";
+import { MassiveMarketData } from "../../providers/massive/massive-market-data";
 import { PeriodType } from "../../shared/constants";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
+import { MassiveClient } from "../../providers/massive/massive-client";
 import { ICandleData, IPolygonCandleResponse } from "../../types/back-test-types";
 
 // Locks in how initCandleData normalizes candle timestamps for each data source,
@@ -53,12 +54,12 @@ const run = async (
   intradayData?: ICandleData,
 ) => {
   jest
-    .spyOn(SchwabAPI, "getHistoryWithBounds")
+    .spyOn(SchwabClient, "getPriceHistory")
     .mockImplementation(async (symbol) =>
       period === PeriodType.DAY ? daily[symbol] : (intradayData as ICandleData),
     );
   jest
-    .spyOn(SchwabAPI, "getStockHistoryPolygon")
+    .spyOn(MassiveClient, "getAggregates")
     .mockImplementation(async (symbol) =>
       period === PeriodType.DAY
         ? toPolygon(daily[symbol], true)
@@ -66,7 +67,7 @@ const run = async (
     );
 
   const helper = new BackTestHelper(
-    source === "schwab" ? new SchwabCandleSource() : new PolygonCandleSource(),
+    source === "schwab" ? new SchwabMarketData() : new MassiveMarketData(),
   );
   try {
     const result = await helper.initCandleData(
@@ -104,13 +105,13 @@ const runRawDaily = async (
       volume: 100,
     }));
   jest
-    .spyOn(SchwabAPI, "getHistoryWithBounds")
+    .spyOn(SchwabClient, "getPriceHistory")
     .mockImplementation(async (symbol) => {
       const candles = candlesFor(symbol);
       return { symbol, empty: candles.length === 0, index: 0, candles };
     });
   jest
-    .spyOn(SchwabAPI, "getStockHistoryPolygon")
+    .spyOn(MassiveClient, "getAggregates")
     .mockImplementation(async (symbol) => {
       const results = candlesFor(symbol).map((c) => ({
         t: c.datetime,
@@ -130,7 +131,7 @@ const runRawDaily = async (
     });
 
   const helper = new BackTestHelper(
-    source === "schwab" ? new SchwabCandleSource() : new PolygonCandleSource(),
+    source === "schwab" ? new SchwabMarketData() : new MassiveMarketData(),
   );
   try {
     const result = await helper.initCandleData(
@@ -207,8 +208,10 @@ describe("BackTestHelper.initCandleData characterization", () => {
           }
 
           it("drops symbols with no candles", async () => {
+            // the same trading day, stamped the way each provider stamps it
+            const midnight = daily.MSFT.candles[0].datetime - (source === "schwab" ? 0 : HOUR_MS);
             expect(
-              await runRawDaily(source, { AAPL: [], MSFT: [daily.MSFT.candles[0].datetime] }),
+              await runRawDaily(source, { AAPL: [], MSFT: [midnight] }),
             ).toMatchSnapshot();
           });
 

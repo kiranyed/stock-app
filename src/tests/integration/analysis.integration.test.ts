@@ -5,7 +5,7 @@ import * as path from "path";
 import { HttpStatusCode } from "axios";
 import { PeriodType } from "../../shared/constants";
 import { IStockGroup } from "../../types/entity-types";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabAuth } from "../../providers/schwab/schwab-auth";
 import { DatabaseAPI } from "../../shared/services/db-api";
 import AppServer from "../../startup/app-server";
 
@@ -50,10 +50,10 @@ describe("Integration - Analysis", () => {
     dotenv.config();
     const appServer = new AppServer();
     agent = supertest.agent(appServer.getExpressInstance());
-    await SchwabAPI.initialize();
+    await SchwabAuth.initialize();
     await DatabaseAPI.createConnection();
     await DatabaseAPI.startTransaction();
-  });
+  }, 60000);
 
   it("registers and logs in", async () => {
     const reg = await agent.post("/user/register").send({ username, password });
@@ -69,6 +69,28 @@ describe("Integration - Analysis", () => {
     const grpResp = await request("/api/group", POST, group);
     group.id = grpResp.body.id;
     expect(group.id).toBeTruthy();
+  });
+
+  it("refuses another user's group", async () => {
+    const other = `${username}x`;
+    await agent.post("/user/register").send({ username: other, password });
+    const { token } = (await agent.post("/user/login").send({ username: other, password })).body;
+    const analysis = await agent.post("/api/analysis/get-data").set("x-access-token", token).send({
+      scenarioFilters: [{ varName: "percentchange", operator: ">", compareVal: "7", timeAgo: "4" }],
+      dataFilters: [],
+      period: PeriodType.DAY,
+      startTime: 1709269200000,
+      endTime: 1742700799869,
+      groupId: group.id,
+    });
+    const variables = await agent
+      .post("/api/analysis/check-variables")
+      .set("x-access-token", token)
+      .send({ groupId: group.id, variables: [{ varName: "percentchange", timeAgo: "10" }] });
+    for (const res of [analysis, variables]) {
+      expect(res.status).toBe(HttpStatusCode.NotFound);
+      expect(res.body.message).toBe("stock group not found");
+    }
   });
 
   it("runs analysis", async () => {
@@ -104,7 +126,10 @@ describe("Integration - Analysis", () => {
   });
 
   afterAll(async () => {
-    await DatabaseAPI.rollbackTransaction();
-    await DatabaseAPI.closeConnection();
+    try {
+      await DatabaseAPI.rollbackTransaction();
+    } finally {
+      await DatabaseAPI.closeConnection();
+    }
   });
 });

@@ -14,3 +14,4 @@ db/exports/
 .DS_Store
 .claude/settings.local.json
 src/public/react/stock-app-frontend/dist/
+util/load-test/candles/

@@ -8,6 +8,7 @@ import {
 } from "primereact/autocomplete";
 import { Range } from "../shared/range";
 import { AnalysisFilterGroup } from "./analysis-filter-group";
+import { analysisDataOptions } from "../real-time-trading/filter-group/filter-variables";
 import { validateAnalysisForm } from "./analysis-util";
 import { AnalysisDataTable } from "./analysis-data-table";
 import { IAnalysisData, IFilter, NameIdPair } from "../shared/types";
@@ -217,6 +218,7 @@ const AnalysisPage: React.FC<IProps> = () => {
         <h3>Variables to Retrieve</h3>
         <AnalysisFilterGroup
           dataFilters={true}
+          variableOptions={analysisDataOptions}
           callback={changeDataFilter}
           removeFilter={removeDataFilter}
           filters={dataFilters}

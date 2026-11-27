@@ -1,6 +1,5 @@
 import React from "react";
 import { useState } from "react";
-import PropTypes from "prop-types";
 import { StockAppAPI } from "../shared/utilities/stock-app-api";
 import "./login.scss";
 import { AxiosError } from "axios";
@@ -115,7 +114,3 @@ export default function Login({
     </div>
   );
 }
-
-Login.propTypes = {
-  setToken: PropTypes.func.isRequired,
-};

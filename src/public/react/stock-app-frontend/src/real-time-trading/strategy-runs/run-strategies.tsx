@@ -5,13 +5,10 @@ import {
   AutoCompleteChangeEvent,
   AutoCompleteCompleteEvent,
 } from "primereact/autocomplete";
-import { Toast } from "primereact/toast";
 import "./run-strategies.scss";
-import { RealStrategyTable } from "./real-strategy-table";
 import { SimulationTable } from "./simulation-table";
 import { IStrategyRun, ITransaction, NameIdPair } from "../../shared/types";
 import { StockAppAPI } from "../../shared/utilities/stock-app-api";
-import { displayErrorWithMessage } from "../../shared/toast-util";
 import React from "react";
 
 function getIdArr(strategies: IStrategyRun[]) {
@@ -33,17 +30,10 @@ function splitByRunId(
 }
 
 const RunStrategiesPage: React.FC = () => {
-  const message = useRef<Toast | null>(null);
   const simLastPingTime = useRef(0);
-  const realLastPingTime = useRef(0);
   const currentSimulationsRef = useRef<IStrategyRun[]>([]);
-  const currentRealStrategiesRef = useRef<IStrategyRun[]>([]);
 
-  const [realStratError, setRealStratError] = useState("");
   const [simulationError, setSimulationError] = useState("");
-  const [currentRealStrategies, setCurrentRealStrategies] = useState<
-    IStrategyRun[]
-  >([]);
   const [currentSimulations, setCurrentSimulations] = useState<IStrategyRun[]>(
     [],
   );
@@ -53,10 +43,6 @@ const RunStrategiesPage: React.FC = () => {
     NameIdPair[]
   >([]);
   const [simulationGroup, setSimulationGroup] = useState<NameIdPair>({
-    name: "",
-    id: 0,
-  });
-  const [realStrategyGroup, setRealStrategyGroup] = useState<NameIdPair>({
     name: "",
     id: 0,
   });
@@ -70,15 +56,8 @@ const RunStrategiesPage: React.FC = () => {
     [],
   );
   const [strategyNames, setStrategyNames] = useState<NameIdPair[]>([]);
-  const [realStrategy, setRealStrategy] = useState<NameIdPair>({
-    name: "",
-    id: 0,
-  });
   const [simTransactions, setSimTransactions] = useState<
     Record<string | number, ITransaction[]>
-  >({ 0: [] });
-  const [realStratTransactions, setRealStratTransactions] = useState<
-    Record<string, ITransaction[]>
   >({ 0: [] });
   //const [previousSimulationStrategyNames, setPreviousSimulationStrategyNames] = useState<NameIdPair[]>([]);
 
@@ -86,10 +65,6 @@ const RunStrategiesPage: React.FC = () => {
     setStrategyNames(e.value);
   const changeGroupName1 = (e: AutoCompleteChangeEvent) =>
     setSimulationGroup(e.target.value);
-  const changeGroupName2 = (e: AutoCompleteChangeEvent) =>
-    setRealStrategyGroup(e.target.value);
-  const changeStratName = (e: AutoCompleteChangeEvent) =>
-    setRealStrategy(e.target.value);
   const toggleNotifyOnEntry = () => setNotifyOnEntry((prev) => !prev);
 
   const searchNames = (event: AutoCompleteCompleteEvent) => {
@@ -118,26 +93,6 @@ const RunStrategiesPage: React.FC = () => {
       return rest;
     });
   };
-
-  const removeRealStrategy = (id: number) => {
-    setCurrentRealStrategies((prev) => prev.filter((strat) => strat.id !== id));
-    setRealStratTransactions((prev) => {
-      const { [id]: _, ...rest } = prev;
-      void _;
-      return rest;
-    });
-  };
-
-  const appendRealTransactions = useCallback((transactions: ITransaction[]) => {
-    const split = splitByRunId(transactions);
-    setRealStratTransactions((state) => {
-      const newState: Record<string, ITransaction[]> = { ...state };
-      for (const [key, value] of Object.entries(split)) {
-        newState[key] = state[key] ? [...state[key], ...value] : value;
-      }
-      return newState;
-    });
-  }, []);
 
   const appendSimulationTransactions = useCallback(
     (transactions: ITransaction[]) => {
@@ -206,59 +161,6 @@ const RunStrategiesPage: React.FC = () => {
       });
   };
 
-  const runRealStrategy = () => {
-    if (currentRealStrategies.length) {
-      displayErrorWithMessage(
-        message,
-        null,
-        "Can only run one real money strategy at a time",
-        { life: 5000 },
-      );
-      return;
-    }
-    if (!realStrategy.name || !realStrategyGroup) {
-      setRealStratError("Please select a strategy and group");
-      return;
-    }
-    StockAppAPI.runRealStrategy(realStrategy.id, realStrategyGroup.id)
-      .then((resp) => {
-        setRealStratError("");
-        console.log("success running", realStrategy);
-
-        const startedRuns = resp.runs.map(
-          (run: { id: number; start_time: string }) => ({
-            id: run.id,
-            strategyName: realStrategy.name,
-            groupName: realStrategyGroup.name,
-            startTime: run.start_time,
-          }),
-        );
-
-        setCurrentRealStrategies((state) => [...state, ...startedRuns]);
-        getTransactionsReal(
-          0,
-          startedRuns.map((run: IStrategyRun) => run.id),
-        );
-      })
-      .catch((err) => {
-        setRealStratError(err.response?.data?.message);
-        console.log("Error:", err.response?.data?.message);
-      });
-  };
-
-  const getTransactionsReal = useCallback(
-    (pingTime: number, runIds?: number[]) => {
-      const ids = runIds ?? getIdArr(currentRealStrategiesRef.current);
-      if (!ids.length) return;
-      return StockAppAPI.getRealStrategiesTransactions(ids, pingTime)
-        .then((data) => {
-          appendRealTransactions(data.transactions);
-        })
-        .catch(console.log);
-    },
-    [appendRealTransactions],
-  );
-
   const getSimulationsTransactions = useCallback(
     (pingTime: number, runIds?: number[]) => {
       const ids = runIds ?? getIdArr(currentSimulationsRef.current);
@@ -275,10 +177,6 @@ const RunStrategiesPage: React.FC = () => {
   useEffect(() => {
     currentSimulationsRef.current = currentSimulations;
   }, [currentSimulations]);
-
-  useEffect(() => {
-    currentRealStrategiesRef.current = currentRealStrategies;
-  }, [currentRealStrategies]);
 
   const pingSimulations = () => {
     const lastPing = simLastPingTime.current;
@@ -298,18 +196,9 @@ const RunStrategiesPage: React.FC = () => {
           simLastPingTime.current = Date.now();
           getSimulationsTransactions(lastPing, getIdArr(simulations));
         }
-        return StockAppAPI.getCurrentRealStrategies();
-      })
-      .then((strategies) => {
-        if (strategies) setCurrentRealStrategies(strategies);
-        if (strategies?.length) {
-          const lastPing = realLastPingTime.current;
-          realLastPingTime.current = Date.now();
-          getTransactionsReal(lastPing, getIdArr(strategies));
-        }
       })
       .catch((err) => console.log(err.response?.data?.message));
-  }, [getSimulationsTransactions, getTransactionsReal]);
+  }, [getSimulationsTransactions]);
 
   return (
     <div className="run-strategies-page">
@@ -365,49 +254,6 @@ const RunStrategiesPage: React.FC = () => {
         ))}
       </div>
 
-      <h2 className="section-header">Real Strategy</h2>
-
-      <div className="card">
-        <div className="form-grid">
-          <AutoComplete
-            field="name"
-            completeMethod={searchNames}
-            suggestions={filteredNameIdPairs}
-            placeholder="Strategy Name"
-            value={realStrategy}
-            onChange={changeStratName}
-            className="w-full"
-          />
-          <AutoComplete
-            field="name"
-            completeMethod={searchGroups}
-            suggestions={filteredGroupNameIdPairs}
-            placeholder="Stock Group Name"
-            value={realStrategyGroup}
-            onChange={changeGroupName2}
-            className="w-full"
-          />
-          {realStratError && <p className="error-text">{realStratError}</p>}
-          <Button
-            label="Run Real Strategy"
-            icon="pi pi-play"
-            className="p-button-info"
-            onClick={runRealStrategy}
-          />
-        </div>
-
-        {currentRealStrategies.map((real) => (
-          <RealStrategyTable
-            key={real.id}
-            id={real.id}
-            strategyName={real.strategyName}
-            groupName={real.groupName}
-            removeRealStrategy={removeRealStrategy}
-            transactions={realStratTransactions[real.id]}
-          />
-        ))}
-      </div>
-
       <div className="actions">
         <Button
           label="Ping Simulations"
@@ -417,7 +263,6 @@ const RunStrategiesPage: React.FC = () => {
         />
       </div>
 
-      <Toast ref={message} />
     </div>
   );
 };

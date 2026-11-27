@@ -1,13 +1,13 @@
 import { StatusCodes } from "http-status-codes";
 import { Response, NextFunction } from "express";
 import { checkVariables, getData } from "../../routers/analysis-router";
-import { BackTestService } from "../../run/back-test-service";
+import { BackTestPool } from "../../run/back-test-pool";
 import { ScreenerJobService } from "../../shared/services/screener-job-service";
 import { VariableCheckService } from "../../shared/services/variable-check-service";
 import { AuthenticatedRequest } from "../../types/middleware-types";
 
 jest.mock("../../shared/services/screener-job-service");
-jest.mock("../../run/back-test-service");
+jest.mock("../../run/back-test-pool");
 jest.mock("../../shared/services/variable-check-service");
 
 describe("analysisRouter", () => {
@@ -39,35 +39,27 @@ describe("analysisRouter", () => {
         dataFilters: { region: "US" },
       };
 
-      const mockAnalyses = { test: "analysis" };
       const mockGroup = { groupName: "TestGroup" };
       const mockResult = [{ result: "BackTestResult" }];
 
-      (ScreenerJobService.setUpAnalysisBackTest as jest.Mock).mockResolvedValue(
-        {
-          analyses: mockAnalyses,
-          group: mockGroup,
-        },
-      );
-      (BackTestService.runBackTests as jest.Mock).mockReturnValue(mockResult);
+      (ScreenerJobService.getOwnedGroup as jest.Mock).mockResolvedValue(mockGroup);
+      (BackTestPool.run as jest.Mock).mockResolvedValue({ results: mockResult, runtimeMs: 1 });
 
       await getData(req as AuthenticatedRequest, res as Response, next);
 
-      expect(ScreenerJobService.setUpAnalysisBackTest).toHaveBeenCalledWith(
-        "DAILY",
-        { filters: [{ symbol: "AAPL" }], connectors: [] },
-        { region: "US" },
-        1,
-      );
-      expect(BackTestService.runBackTests).toHaveBeenCalledWith(
-        [mockAnalyses],
-        mockGroup,
-        {
+      expect(ScreenerJobService.getOwnedGroup).toHaveBeenCalledWith(1, 1);
+      expect(BackTestPool.run).toHaveBeenCalledWith(1, {
+        kind: "analysis",
+        period: "DAILY",
+        scenarioFilterGroup: { filters: [{ symbol: "AAPL" }], connectors: [] },
+        dataFilters: { region: "US" },
+        group: mockGroup,
+        config: {
           analyze: true,
           startTime: "2023-01-01T00:00:00Z",
           endTime: "2023-01-31T23:59:59Z",
         },
-      );
+      });
       expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
       expect(res.json).toHaveBeenCalledWith({ analysisData: mockResult[0] });
     });
@@ -82,7 +74,7 @@ describe("analysisRouter", () => {
         groupId: 1,
         dataFilters: { region: "US" },
       };
-      (ScreenerJobService.setUpAnalysisBackTest as jest.Mock).mockRejectedValue(
+      (ScreenerJobService.getOwnedGroup as jest.Mock).mockRejectedValue(
         mockError,
       );
 
@@ -110,6 +102,7 @@ describe("analysisRouter", () => {
       await checkVariables(req as AuthenticatedRequest, res as Response, next);
 
       expect(VariableCheckService.getVariableValuesForGroup).toHaveBeenCalledWith(
+        1,
         10,
         [{ varName: "percentchange", timeAgo: "10" }],
         undefined,

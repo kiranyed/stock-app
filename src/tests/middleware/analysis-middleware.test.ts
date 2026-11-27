@@ -1,16 +1,10 @@
 import { Response } from "express";
 import Error400 from "../../errors/error-400";
-import Error404 from "../../errors/error-404";
 import {
   validateAnalysisRequest,
   validateVariableCheckRequest,
 } from "../../middleware/analysis-middleware";
-import StockGroupRepository from "../../shared/services/repos/stock-group-repository";
 import { AuthenticatedRequest } from "../../types/middleware-types";
-// Mock the StockGroupRepository
-jest.mock("../../shared/services/repos/stock-group-repository", () => ({
-  getSymbolsFromGroupById: jest.fn(),
-}));
 
 describe("validateAnalysisRequest", () => {
   let req: Partial<AuthenticatedRequest>;
@@ -45,9 +39,6 @@ describe("validateAnalysisRequest", () => {
     };
     res = {};
     next = jest.fn();
-    (
-      StockGroupRepository.getSymbolsFromGroupById as jest.Mock
-    ).mockResolvedValue([["AAPL"]]);
   });
 
   it("should call next without error for valid request", async () => {
@@ -75,22 +66,6 @@ describe("validateAnalysisRequest", () => {
     expect(next.mock.calls[0][0].message).toBe(
       "payload is invalid; must contain all the properties of type IAnalysisRequest",
     );
-  });
-
-  it("should call next with Error404 if groupName not found", async () => {
-    (
-      StockGroupRepository.getSymbolsFromGroupById as jest.Mock
-    ).mockResolvedValue([]);
-
-    await validateAnalysisRequest(
-      req as AuthenticatedRequest,
-      res as Response,
-      next,
-    );
-
-    expect(next).toHaveBeenCalled();
-    expect(next.mock.calls[0][0]).toBeInstanceOf(Error404);
-    expect(next.mock.calls[0][0].message).toBe(fakeGroupId + " not found");
   });
 
   it("should call next with Error400 if startTime and endTime are invalid integers", async () => {
@@ -140,9 +115,6 @@ describe("validateVariableCheckRequest", () => {
     };
     res = {};
     next = jest.fn();
-    (
-      StockGroupRepository.getSymbolsFromGroupById as jest.Mock
-    ).mockResolvedValue([{"symbols": "[\"AAPL\"]"}]);
   });
 
   it("should call next for valid variable check request", async () => {
@@ -179,20 +151,5 @@ describe("validateVariableCheckRequest", () => {
 
     expect(next).toHaveBeenCalled();
     expect(next.mock.calls[0][0]).toBeInstanceOf(Error400);
-  });
-
-  it("should reject when group does not exist", async () => {
-    (
-      StockGroupRepository.getSymbolsFromGroupById as jest.Mock
-    ).mockResolvedValue([]);
-
-    await validateVariableCheckRequest(
-      req as AuthenticatedRequest,
-      res as Response,
-      next,
-    );
-
-    expect(next).toHaveBeenCalled();
-    expect(next.mock.calls[0][0]).toBeInstanceOf(Error404);
   });
 });

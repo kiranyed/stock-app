@@ -3,6 +3,8 @@ export interface IStrategyEntity {
   name: string;
   description: string;
   screeners: string;
+  /** The screeners' format (strategy-schema.ts SCREENERS_VERSION); 1 for rows saved before ids. */
+  screeners_version?: number;
   date_added?: number;
   period: number;
   user_id: number;
@@ -72,6 +74,8 @@ export interface ILiveJobRunEntity {
   strategy_id: number;
   group_id: number;
   status: string;
+  job_type?: string;
+  notify_on_entry?: boolean | number;
   position_size: number;
   open_by: number;
   close_by: number;
@@ -79,6 +83,8 @@ export interface ILiveJobRunEntity {
 
 export interface Transaction {
   id?: number;
+  runId?: number;
+  long?: boolean;
   symbol: string;
   datetime: number;
   quantity: number;
@@ -89,6 +95,7 @@ export interface Transaction {
 
 export interface TransactionEntity {
   id?: number;
+  long?: boolean | number;
   symbol: string;
   datetime: number;
   quantity: number;
@@ -110,18 +117,10 @@ export interface IStockInfoEntity {
   labels: string;
 }
 
-export interface IPositionRule {
+/** How many runs (`live_job`) and saved back-test results point at a strategy or group. */
+export interface IRunHistoryCount {
   id: number;
-  account_type: string;
-  symbol: string;
-  option?: string;
-  stop_loss?: number;
-  stop_loss_on_underlying?: number;
-  target?: number;
-  target_on_underlying?: number;
-  is_active: boolean;
-  created_at: number;
-  updated_at: number;
+  name: string;
+  runs: number;
+  backtests: number;
 }
-
-export type IPositionRuleNew = Omit<IPositionRule, "id" | "created_at" | "updated_at">;

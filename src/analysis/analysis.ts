@@ -9,7 +9,7 @@ import {
 } from "../types/data-processing-types";
 import { PeriodType } from "../shared/constants";
 import { IAnalysisData } from "./analysis-types";
-import { StrategyUtil } from "../shared/utilities/strategy-util";
+import { FilterVariable } from "../engine/filter-specs";
 
 export abstract class Analysis implements IStockScreenerJob {
   private scenarioFilterGroup: FilterGroup;
@@ -26,7 +26,7 @@ export abstract class Analysis implements IStockScreenerJob {
     dataFilters: IFilter[],
   ) {
     this.period = period;
-    this.scenarioFilterGroup = new FilterGroup(scenarioFilterGroup);
+    this.scenarioFilterGroup = new FilterGroup(scenarioFilterGroup, period);
     this.dataFilters = dataFilters;
   }
 
@@ -41,10 +41,6 @@ export abstract class Analysis implements IStockScreenerJob {
     return -1;
   }
 
-  getAdditionalPeriods(): PeriodType[] {
-    return []; // Return the current period as a valid PeriodType
-  }
-
   getPeriod() {
     return this.period;
   }
@@ -55,11 +51,6 @@ export abstract class Analysis implements IStockScreenerJob {
 
   valIsNumber(val: unknown): val is number {
     return typeof val === "number";
-  }
-
-  //TODO will implement once I implement running multiple analysis at once
-  canRun() {
-    return true;
   }
 
   //abstract collectData(scenarios: IAnalysisData[]): IData[];
@@ -103,19 +94,7 @@ export abstract class Analysis implements IStockScreenerJob {
     return this.scenarioFilterGroup;
   }
 
-  getAllVariables(): string[] {
-    const variables = new Array<string>();
-    const filters = this.scenarioFilterGroup.getFilters();
-    for (const filt of filters) {
-      variables.push(StrategyUtil.convertToVariableName(filt));
-      if (filt.compareVar) {
-        variables.push(StrategyUtil.convertToCompareVarName(filt));
-      }
-    }
-    return variables;
-  }
-
-  getCrossPeriodVars(): IFilterData {
-    return {};
+  getVariables(): FilterVariable[] {
+    return this.scenarioFilterGroup.getVariables();
   }
 }

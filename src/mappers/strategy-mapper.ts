@@ -1,5 +1,6 @@
 import { IStrategyEntity } from "../types/entity-types";
 import { IScreener, IStrategy } from "../types/strategy-types";
+import { upgradeScreeners } from "../services/strategy-schema";
 
 const StrategyMapper = {
   parseScreeners(screenerStr: string | IScreener[] | IScreener): IScreener[] {
@@ -22,7 +23,8 @@ const StrategyMapper = {
     return {
       id: entity.id,
       name: entity.name,
-      screeners: this.parseScreeners(entity.screeners),
+      // in the current format whatever version was stored (every screener gets its id)
+      screeners: upgradeScreeners(this.parseScreeners(entity.screeners)),
       description: entity.description,
       period: entity.period,
     };

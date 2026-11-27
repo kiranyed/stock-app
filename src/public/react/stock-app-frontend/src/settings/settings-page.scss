@@ -1,0 +1,60 @@
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .settings-note {
+    color: #555;
+    margin-bottom: 1.5rem;
+  }
+
+  .settings-section {
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+
+    h3 {
+      margin: 0 0 0.75rem;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 0.4rem 1.5rem;
+      margin: 0 0 0.75rem;
+    }
+
+    dt {
+      font-weight: 600;
+    }
+
+    dd {
+      margin: 0;
+    }
+
+    small {
+      color: #666;
+    }
+
+    .paste-step {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .p-message {
+      margin-top: 0.75rem;
+    }
+  }
+}

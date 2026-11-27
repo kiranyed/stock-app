@@ -1,40 +1,14 @@
 import axios, { AxiosResponse } from "axios";
 import {
+  IAppSettings,
   IFilter,
-  IOrder,
   IStrategy,
   IUser,
   IUserToken,
   IVariableDefinition,
+  ISchwabStatus,
 } from "../types";
-import { OptionStrikePrice } from "../enums";
-import { IPosition } from "../trading-types";
 import { Nullable } from "primereact/ts-helpers";
-
-interface IOptionParams {
-  symbol: string;
-  quantity: number;
-  marketOrder: boolean;
-  limitPrice?: number;
-  contractSymbol?: string;
-  weeklies?: OptionStrikePrice[];
-  shortTerm?: OptionStrikePrice[];
-  midTerm?: OptionStrikePrice[];
-  longTerm?: OptionStrikePrice[];
-  leaps?: OptionStrikePrice[];
-  optionLength?: "weeklies" | "shortTerm" | "midTerm" | "longTerm" | "leaps";
-  optionAggressiveness?: OptionStrikePrice;
-}
-
-export interface IQuoteResponse {
-  symbol: string;
-  description?: string;
-  bid: number | null;
-  ask: number | null;
-  mark: number | null;
-  last: number | null;
-  quoteTime: number;
-}
 
 export interface IBatchQuoteResponseItem {
   requestedSymbol: string;
@@ -47,43 +21,6 @@ export interface IBatchQuoteResponse {
   [symbol: string]: IBatchQuoteResponseItem;
 }
 
-export interface IOptionPreviewResponse {
-  symbol: string;
-  selection: {
-    timeFrame: string;
-    strikeType: string;
-  };
-  contractSymbol: string;
-  strikePrice: number;
-  expirationDate: string;
-  bid: number;
-  ask: number;
-  midpoint: number;
-  contractPrice: number;
-  estimatedQuantity: number;
-  estimatedTotal: number;
-}
-
-export interface IOptionChainContractResponse {
-  symbol: string;
-  strikePrice: number;
-  bid: number;
-  ask: number;
-  mark: number;
-}
-
-export interface IOptionChainExpirationResponse {
-  expirationDate: string;
-  daysToExpiration: number;
-  calls: IOptionChainContractResponse[];
-  puts: IOptionChainContractResponse[];
-}
-
-export interface IOptionChainResponse {
-  symbol: string;
-  underlyingPrice: number;
-  expirations: IOptionChainExpirationResponse[];
-}
 export class StockAppAPI {
   public static runBackTests(
     strategyIds: number[],
@@ -131,23 +68,6 @@ export class StockAppAPI {
     });
   }
 
-  public static getAccountPositions(
-    accountType: string,
-  ): Promise<{ positions: IPosition[] }> {
-    return this.request(
-      `api/trade/acct-positions?accountType=${accountType}`,
-      "get",
-    );
-  }
-
-  public static makeOrders(orders: IOrder[], accountType: string) {
-    return this.request(
-      `api/trade/make-orders?accountType=${accountType}`,
-      "post",
-      { orders },
-    );
-  }
-
   public static getStockNames(groupName: string) {
     return this.request(
       `api/group/names?group=${groupName}`,
@@ -165,55 +85,6 @@ export class StockAppAPI {
 
   public static createStrategy(strat: IStrategy) {
     return this.request(`api/strategy`, "post", strat);
-  }
-
-  public static makeOptionsTrades(params: IOptionParams, accountType?: string) {
-    const accountQuery = accountType ? `?accountType=${encodeURIComponent(accountType)}` : "";
-    return this.request(
-      `api/trade/options-trade${accountQuery}`,
-      "post",
-      params,
-    );
-  }
-
-  public static previewOptionTrade(params: {
-    symbol: string;
-    quantity: number;
-    optionLength: "weeklies" | "shortTerm" | "midTerm" | "longTerm" | "leaps";
-    optionAggressiveness: OptionStrikePrice;
-  }): Promise<IOptionPreviewResponse> {
-    return this.request(
-      `api/trade/options-preview`,
-      "post",
-      params,
-    );
-  }
-
-  public static getQuote(symbol: string): Promise<IQuoteResponse> {
-    return this.request(
-      `api/trade/quote?symbol=${encodeURIComponent(symbol)}`,
-      "get",
-    );
-  }
-
-  public static getOptionsChain(symbol: string): Promise<IOptionChainResponse> {
-    return this.request(
-      `api/trade/options-chain?symbol=${encodeURIComponent(symbol)}`,
-      "get",
-    );
-  }
-
-  public static retrieveTransactions(
-    symbol: string,
-    startDate: string,
-    endDate: string,
-    accountType?: string,
-  ) {
-    const accountQuery = accountType ? `&accountType=${encodeURIComponent(accountType)}` : "";
-    return this.request(
-      `api/trade/transactions?symbol=${symbol}&startDate=${startDate}&endDate=${endDate}${accountQuery}`,
-      "get",
-    );
   }
 
   /* not sure whether I should make getData a post request */
@@ -282,31 +153,6 @@ export class StockAppAPI {
     );
   }
 
-  public static getRealStrategiesTransactions(
-    runIds: number[],
-    pingTime: number,
-  ) {
-    let str = "runId=";
-    for (let i = 0; i < runIds.length; i++) {
-      if (i < runIds.length - 1) {
-        str += runIds[i] + "&runId=";
-      } else {
-        str += runIds[i];
-      }
-    }
-    return this.request(
-      `api/transaction/real?${str}&pingTime=${pingTime}`,
-      "get",
-    );
-  }
-
-  public static runRealStrategy(stratId: number, groupId: number) {
-    return this.request(
-      `api/run/real-strategy?strategyId=${stratId}&groupId=${groupId}`,
-      "patch",
-    );
-  }
-
   public static runSimulation(simId: number, groupId: number) {
     return this.request(
       `api/run/simulation?strategyId=${simId}&groupId=${groupId}&test=true`,
@@ -338,13 +184,6 @@ export class StockAppAPI {
   public static getCurrentRunningSimulations() {
     return this.request(
       `api/run/current-simulations`,
-      "get",
-    );
-  }
-
-  public static getCurrentRealStrategies() {
-    return this.request(
-      `api/run/current-strategies`,
       "get",
     );
   }
@@ -384,33 +223,9 @@ export class StockAppAPI {
     );
   }
 
-  public static pauseRealStrategy(id: number) {
-    return this.request(
-      `api/run/pause-real-strategy`,
-      "patch",
-      { id },
-    );
-  }
-
-  public static resumeRealStrategy(id: number) {
-    return this.request(
-      `api/run/resume-real-strategy`,
-      "patch",
-      { id },
-    );
-  }
-
   public static endSimulation(id: number) {
     return this.request(
       `api/run/end-simulation`,
-      "patch",
-      { id },
-    );
-  }
-
-  public static endRealStrategy(id: number) {
-    return this.request(
-      `api/run/end-real-strategy`,
       "patch",
       { id },
     );
@@ -499,13 +314,6 @@ export class StockAppAPI {
     ) as Promise<IBatchQuoteResponse>;
   }
 
-  public static getPendingOrders(range?: { start: string; end: string }) {
-    return this.request(
-      `api/pending-orders?start=${range?.start}&end=${range?.end}`,
-      "get",
-    );
-  }
-
   public static getCandleData(
     symbols: string[] | undefined,
     startTime: number,
@@ -532,6 +340,24 @@ export class StockAppAPI {
       `api/candle-data?${params.toString()}`,
       "get",
     );
+  }
+
+  /** The install's data provider, alert channels and back-test settings (read only). */
+  public static getSettings(): Promise<IAppSettings> {
+    return this.request("api/settings", "get");
+  }
+
+  public static getSchwabStatus(): Promise<ISchwabStatus> {
+    return this.request("api/schwab/status", "get");
+  }
+
+  public static getSchwabAuthorizeUrl(): Promise<{ url: string }> {
+    return this.request("api/schwab/authorize-url", "get");
+  }
+
+  /** `url`: the address Schwab redirected the browser to after login. */
+  public static schwabSignIn(url: string): Promise<ISchwabStatus> {
+    return this.request("api/schwab/sign-in", "post", { url });
   }
 
   private static request(url: string, method: string, data?: unknown) {
@@ -572,37 +398,4 @@ export class StockAppAPI {
       });
   }
 
-  // 🆕 Position rule management
-  public static updatePositionRule(
-    rule: {
-      symbol: string;
-      option?: string;
-      stopLoss?: number;
-      stopLossOnUnderlying?: number;
-      target?: number;
-      targetOnUnderlying?: number;
-    },
-    accountType: string,
-  ) {
-    return this.request(
-      `api/trade/position-rule?accountType=${accountType}`,
-      "patch",
-      {
-        symbol: rule.symbol,
-        option: rule.option,
-        stop_loss: rule.stopLoss,
-        stop_loss_on_underlying: rule.stopLossOnUnderlying,
-        target: rule.target,
-        target_on_underlying: rule.targetOnUnderlying,
-        is_active: true,
-      },
-    );
-  }
-
-  public static deletePositionRule(ruleId: number) {
-    return this.request(
-      `api/trade/position-rule?ruleId=${ruleId}`,
-      "delete",
-    );
-  }
 }

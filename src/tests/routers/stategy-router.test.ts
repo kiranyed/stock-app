@@ -1,5 +1,6 @@
-import { Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import Error400 from "../../errors/error-400";
 import {
   create,
   deleteMultiple,
@@ -8,282 +9,83 @@ import {
   getAll,
   getAllNames,
   getByName,
-  IDRequest,
-  IDsRequest,
-  StrategyRequest,
 } from "../../routers/strategy-router";
-import Error400 from "../../errors/error-400";
-import { PeriodType } from "../../shared/constants";
-import StrategyMapper from "../../mappers/strategy-mapper";
-import StrategyRepository from "../../shared/services/repos/strategy-repository";
+import { StrategyService } from "../../services/strategy-service";
 
-jest.mock("../../mappers/strategy-mapper");
-jest.mock("../../shared/services/repos/strategy-repository");
+jest.mock("../../services/strategy-service");
 
-describe("strategyRouter", () => {
-  let req: Partial<StrategyRequest> & { headers: { "user-id": string } };
-  let res: Partial<Response>;
-  let next: NextFunction;
-  const userId = "2";
-  const userIdParsed = parseInt(userId);
-  beforeEach(() => {
-    req = {
-      query: {},
-      params: {},
-      headers: { "user-id": userId },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    } as unknown as Response;
-    next = jest.fn();
+const service = StrategyService as jest.Mocked<typeof StrategyService>;
+
+const call = async (
+  handler: (req: Request, res: Response, next: jest.Mock) => Promise<unknown>,
+  req: Partial<Request>,
+) => {
+  const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+  const next = jest.fn();
+  await handler({ headers: { "user-id": "7" }, params: {}, query: {}, ...req } as Request, res as unknown as Response, next);
+  return { res, next };
+};
+
+const strategy = { id: 3, name: "s", description: "", period: 30, screeners: [] };
+
+beforeEach(() => jest.clearAllMocks());
+
+describe("strategy routes", () => {
+  it("list strategies and names for the caller, in the shapes the frontend reads", async () => {
+    service.list.mockResolvedValue([strategy]);
+    const all = await call(getAll, {});
+    expect(service.list).toHaveBeenCalledWith(7);
+    expect(all.res.json).toHaveBeenCalledWith({ strategies: [strategy] });
+
+    service.listNames.mockResolvedValue([{ id: 3, name: "s" }]);
+    const names = await call(getAllNames, {});
+    expect(names.res.json).toHaveBeenCalledWith([{ id: 3, name: "s" }]);
   });
 
-  describe("getByName", () => {
-    it("should return strategy by name", async () => {
-      req.query = { name: "testStrategy" };
+  it("get by name uses the caller's id", async () => {
+    service.getByNames.mockResolvedValue([strategy]);
+    const one = await call(getByName, { query: { name: "s" } });
+    expect(service.getByNames).toHaveBeenCalledWith(7, ["s"]);
+    expect(one.res.json).toHaveBeenCalledWith({ strategies: [strategy] });
 
-      const mockStrategies = [{ id: "1", name: "testStrategy", screeners: "" }];
+    await call(getByName, { query: { name: ["a", "b"] } });
+    expect(service.getByNames).toHaveBeenLastCalledWith(7, ["a", "b"]);
 
-      (StrategyRepository.getByName as jest.Mock).mockResolvedValue(
-        mockStrategies,
-      );
-      (StrategyMapper.convertEntityToStrategy as jest.Mock).mockReturnValue(
-        mockStrategies[0],
-      );
-      await getByName(req as StrategyRequest, res as Response, next);
-
-      expect(StrategyRepository.getByName).toHaveBeenCalledWith(
-        ["testStrategy"],
-        2,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ strategies: mockStrategies });
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      req.query = { name: "testStrategy" };
-      (StrategyRepository.getByName as jest.Mock).mockRejectedValue(mockError);
-
-      await getByName(req as StrategyRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+    const bad = await call(getByName, { query: {} });
+    expect(bad.next.mock.calls[0][0]).toBeInstanceOf(Error400);
   });
 
-  describe("getAll", () => {
-    it("should return all strategies", async () => {
-      const mockStrategies = [
-        { id: "1", name: "strategy1" },
-        { id: "2", name: "strategy2" },
-      ];
+  it("create and edit pass the body; edit takes the id from the path", async () => {
+    service.create.mockResolvedValue({ id: 9 });
+    const created = await call(create, { body: strategy });
+    expect(service.create).toHaveBeenCalledWith(7, strategy);
+    expect(created.res.json).toHaveBeenCalledWith({ id: 9 });
 
-      (StrategyRepository.getAllStrategies as jest.Mock).mockResolvedValue(
-        mockStrategies,
-      );
-      (StrategyMapper.convertEntityToStrategy as jest.Mock).mockImplementation(
-        (strategy) => strategy,
-      );
-
-      await getAll(req as StrategyRequest, res as Response, next);
-
-      expect(StrategyRepository.getAllStrategies).toHaveBeenCalledWith(
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ strategies: mockStrategies });
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (StrategyRepository.getAllStrategies as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await getAll(req as StrategyRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+    service.update.mockResolvedValue(strategy);
+    const edited = await call(edit, { params: { id: "3" }, body: { ...strategy, id: 99 } });
+    expect(service.update).toHaveBeenCalledWith(7, 3, { ...strategy, id: 99 });
+    expect(edited.res.json).toHaveBeenCalledWith({ msg: "updated strategy: s" });
   });
 
-  describe("getAllNames", () => {
-    it("should return all strategy names", async () => {
-      const mockNames = [{ name: "strategy1" }, { name: "strategy2" }];
+  it("delete one or several", async () => {
+    const one = await call(deleteStrategy, { params: { id: "3" } });
+    expect(service.remove).toHaveBeenCalledWith(7, [3]);
+    expect(one.res.status).toHaveBeenCalledWith(StatusCodes.OK);
+    expect(one.res.json).toHaveBeenCalledWith({ message: "Deleted strategy" });
 
-      (StrategyRepository.getAllNames as jest.Mock).mockResolvedValue(
-        mockNames,
-      );
-
-      await getAllNames(req as StrategyRequest, res as Response, next);
-
-      expect(StrategyRepository.getAllNames).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith(mockNames);
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (StrategyRepository.getAllNames as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await getAllNames(req as StrategyRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+    const many = await call(deleteMultiple, { query: { id: ["3", "4"] } });
+    expect(service.remove).toHaveBeenLastCalledWith(7, [3, 4]);
+    expect(many.res.json).toHaveBeenCalledWith({ message: "Deleted strategies" });
   });
 
-  describe("edit", () => {
-    it("should edit a strategy and return the result", async () => {
-      req.body = {
-        id: 1,
-        name: "updatedStrategy",
-        screeners: [],
-        description: "test",
-        period: PeriodType.DAY,
-      };
+  it("send bad ids and service errors to the error handler", async () => {
+    const bad = await call(deleteStrategy, { params: { id: "3; drop table strategy" } });
+    expect(bad.next.mock.calls[0][0]).toBeInstanceOf(Error400);
+    expect(service.remove).not.toHaveBeenCalled();
 
-      await edit(req as StrategyRequest, res as Response, next);
-
-      expect(StrategyRepository.updateStrategy).toHaveBeenCalledWith(
-        {
-          id: 1,
-          name: "updatedStrategy",
-          screeners: [],
-          description: "test",
-          period: PeriodType.DAY,
-        },
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({
-        msg: "updated strategy: updatedStrategy",
-      });
-    });
-
-    it("should call next with the error on failure", async () => {
-      const mockError = new Error("Test Error");
-      (StrategyRepository.updateStrategy as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await edit(req as StrategyRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
-  });
-
-  describe("create", () => {
-    it("should create a strategy and return the result", async () => {
-      req.body = {
-        id: -1,
-        name: "newStrategy",
-        screeners: [],
-        description: "test",
-        period: PeriodType.DAY,
-      };
-
-      const mockRow = { insertId: 1 };
-
-      (StrategyRepository.createStrategy as jest.Mock).mockResolvedValue(
-        mockRow,
-      );
-
-      await create(req as StrategyRequest, res as Response, next);
-
-      expect(StrategyRepository.createStrategy).toHaveBeenCalledWith(
-        [
-          {
-            name: "newStrategy",
-            screeners: [],
-            description: "test",
-            period: PeriodType.DAY,
-          },
-        ],
-        userIdParsed,
-      );
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ id: mockRow.insertId });
-    });
-
-    it("should call next with the error on failure", async () => {
-      // const mockError = new Error('Test Error');
-      // (StrategyRepository.createStrategy as jest.Mock).mockRejectedValue(mockError);
-
-      await create(req as StrategyRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalled();
-    });
-  });
-
-  describe("delete", () => {
-    it("should delete a strategy and return the result", async () => {
-      req.params = { id: "1" };
-
-      await deleteStrategy(req as IDRequest, res as Response, next);
-
-      expect(StrategyRepository.deleteStrategy).toHaveBeenCalledWith(1);
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: "Deleted strategy" });
-    });
-
-    it("should throw Error400 if no ID is passed", async () => {
-      req.params = {};
-
-      await deleteStrategy(req as IDRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(
-        new Error400("No ID passed for strategy deletion"),
-      );
-    });
-
-    it("should call next with the error on failure", async () => {
-      req.params = { id: "1" };
-
-      const mockError = new Error("Test Error");
-      (StrategyRepository.deleteStrategy as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await deleteStrategy(req as IDRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
-  });
-
-  describe("deleteMultiple", () => {
-    it("should delete multiple strategies and return the result", async () => {
-      req.query = { id: ["1", "2"] };
-
-      await deleteMultiple(req as IDsRequest, res as Response, next);
-
-      expect(StrategyRepository.deleteStrategies).toHaveBeenCalledWith([1, 2]);
-      expect(res.status).toHaveBeenCalledWith(StatusCodes.OK);
-      expect(res.json).toHaveBeenCalledWith({ message: "Deleted strategies" });
-    });
-
-    it("should throw Error400 if no IDs are passed", async () => {
-      req.params = {};
-
-      await deleteMultiple(req as IDsRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(
-        new Error400("No ID(s) passed for strategy deletion"),
-      );
-    });
-
-    it("should call next with the error on failure", async () => {
-      req.query = { id: ["1", "2"] };
-
-      const mockError = new Error("Test Error");
-      (StrategyRepository.deleteStrategies as jest.Mock).mockRejectedValue(
-        mockError,
-      );
-
-      await deleteMultiple(req as IDsRequest, res as Response, next);
-
-      expect(next).toHaveBeenCalledWith(mockError);
-    });
+    const failure = new Error("db down");
+    service.list.mockRejectedValue(failure);
+    const failed = await call(getAll, {});
+    expect(failed.next).toHaveBeenCalledWith(failure);
   });
 });

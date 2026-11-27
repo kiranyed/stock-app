@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import { HttpStatusCode } from "axios";
 import { IStockGroup } from "../../types/entity-types";
 import StockGroupRepository from "../../shared/services/repos/stock-group-repository";
-import { SchwabAPI } from "../../shared/services/trading-api";
+import { SchwabAuth } from "../../providers/schwab/schwab-auth";
 import { DatabaseAPI } from "../../shared/services/db-api";
 import AppServer from "../../startup/app-server";
 
@@ -44,7 +44,7 @@ describe("Integration - Group", () => {
     dotenv.config();
     const appServer = new AppServer();
     agent = supertest.agent(appServer.getExpressInstance());
-    await SchwabAPI.initialize();
+    await SchwabAuth.initialize();
     await DatabaseAPI.createConnection();
     await DatabaseAPI.startTransaction();
 
@@ -53,7 +53,7 @@ describe("Integration - Group", () => {
     const login = await agent.post("/user/login").send({ username, password });
     expect(login.status).toBe(HttpStatusCode.Ok);
     userToken = login.body.token;
-  });
+  }, 60000);
 
   it("creates groups", async () => {
     const grpResp = await request("/api/group", POST, group);
@@ -76,7 +76,10 @@ describe("Integration - Group", () => {
   });
 
   afterAll(async () => {
-    await DatabaseAPI.rollbackTransaction();
-    await DatabaseAPI.closeConnection();
+    try {
+      await DatabaseAPI.rollbackTransaction();
+    } finally {
+      await DatabaseAPI.closeConnection();
+    }
   });
 });

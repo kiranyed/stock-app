@@ -1,11 +1,43 @@
 import { IFilterData } from "../../types/data-processing-types";
 import { IFilter, IFilterGroup } from "../../types/strategy-types";
-import { StrategyUtil } from "../utilities/strategy-util";
+import { PeriodType } from "../constants";
+import {
+  FilterVariable,
+  compareVariable,
+  primaryVariable,
+} from "../../engine/filter-specs";
 
 export class FilterGroup {
   private filterGroup: IFilterGroup;
-  constructor(group: IFilterGroup) {
+  /** per filter: the names its two sides are read under, and its parsed constants */
+  private readonly names: {
+    primary: string;
+    compare?: string;
+    coefficient: number;
+    constant: number;
+  }[];
+  private readonly variables: FilterVariable[];
+
+  constructor(group: IFilterGroup, period: PeriodType) {
     this.filterGroup = group;
+    this.variables = [];
+    this.names = group.filters.map((filter) => {
+      const primary = primaryVariable(filter, period);
+      const compare = compareVariable(filter, period);
+      this.variables.push(primary);
+      if (compare) this.variables.push(compare);
+      return {
+        primary: primary.name,
+        compare: compare?.name,
+        coefficient: parseFloat(filter.compareVarCoefficient || "1"),
+        constant: parseFloat(filter.compareVal),
+      };
+    });
+  }
+
+  /** every variable this group's filters read */
+  getVariables(): FilterVariable[] {
+    return this.variables;
   }
 
   get filters() {
@@ -22,60 +54,26 @@ export class FilterGroup {
     for (let i = 0; i < filters.length; i++) {
       const filter = filters[i];
       const connector = connectors[i - 1];
-      const op = this.evaluateExpression(filter, stock, filterData);
+      const op = this.evaluateExpression(filter, stock, filterData, i);
       currentVal =
         i > 0 ? this.resolveConnector(currentVal, op, connector) : op;
     }
     return currentVal;
   }
 
-  // evaluateExpression(expr: IFilter, stock: string, filterData: IFilterData) {
-  //     const { operator, compareVal, compareVar } = expr;
-  //     const vars = filterData;
-  //     const prop1 = StrategyUtil.convertToVariableName(expr);
-  //     let prop2;
-  //     let val2;
-  //     const val1 = vars[prop1][stock];
-  //     if (compareVar) {
-  //         prop2 = StrategyUtil.convertToCompareVarName(expr);
-  //         val2 = vars[prop2][stock];
-  //     }
+  evaluateExpression(
+    expr: IFilter,
+    stock: string,
+    filterData: IFilterData,
+    index: number,
+  ) {
+    const { primary, compare, coefficient, constant } = this.names[index];
+    const val1 = filterData[primary]?.[stock];
+    const val2 = compare
+      ? coefficient * (filterData[compare]?.[stock] ?? NaN)
+      : constant;
 
-  //     let compareValCasted = compareVar
-  //         ? (expr.compareVarCoefficient ? parseInt(expr.compareVarCoefficient, 10) : 1) * (val2 !== undefined ? val2 : NaN)
-  //         : compareVal;
-  //     compareValCasted = compareVal;
-  //     if (typeof val1 !== 'string') {
-  //         compareValCasted = parseFloat(compareValCasted);
-  //     }
-  //     return this.resolveOperator(val1, compareValCasted, operator);
-  // }
-
-  evaluateExpression(expr: IFilter, stock: string, filterData: IFilterData) {
-    const { operator, compareVal, compareVar } = expr;
-    const vars = filterData;
-    const prop1 = StrategyUtil.convertToVariableName(expr);
-    let prop2;
-    let val2;
-
-    const val1 = vars[prop1][stock];
-    if (compareVar) {
-      prop2 = StrategyUtil.convertToCompareVarName(expr);
-      val2 = vars[prop2][stock];
-    }
-
-    // unit test
-    if (prop2 === "priceEma50" && val2) {
-      // eslint-disable-next-line no-self-assign
-      val2 = val2;
-    }
-    const compareVarCoefficient = parseFloat(expr.compareVarCoefficient || "1");
-
-    return this.resolveOperator(
-      val1,
-      val2 ? compareVarCoefficient * val2 : parseFloat(compareVal),
-      operator,
-    );
+    return this.resolveOperator(val1, val2, expr.operator);
   }
 
   resolveOperator(

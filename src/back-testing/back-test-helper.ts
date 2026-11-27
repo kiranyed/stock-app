@@ -1,18 +1,16 @@
 import { CONSTANTS, PeriodType } from "../shared/constants";
 import { IAnalysisData } from "../analysis/analysis-types";
-import { StrategyUtil } from "../shared/utilities/strategy-util";
 import { ICandleDataMap, ICandle, ITestConfig } from "../types/back-test-types";
 import { IData } from "../types/general-types";
 import { IFilter } from "../types/strategy-types";
 import { IStockDataBackTest } from "../types/data-processing-types";
-import {
-  CandleSource,
-  IDailyAdjustContext,
-} from "./candle-sources/candle-source";
-import { createCandleSource } from "./candle-sources/create-candle-source";
+import { MarketDataProvider } from "../providers/market-data-provider";
+import { createMarketDataProvider } from "../providers/market-data";
 
 export class BackTestHelper {
-  constructor(private readonly candleSource: CandleSource = createCandleSource()) {}
+  constructor(
+    private readonly provider: Pick<MarketDataProvider, "getCandles"> = createMarketDataProvider(),
+  ) {}
 
   candleData: Partial<Record<PeriodType, ICandleDataMap>> = {};
 
@@ -41,12 +39,7 @@ export class BackTestHelper {
         const { candles } = candleData;
         let { index } = candleData;
 
-        // Skip if there are no candles at the current index
-        if (!candles[index]) {
-          continue;
-        }
-
-        // Move index forward until the datetime is less than or equal to the candle's datetime
+        // Move index to the first candle starting at or after datetime
         while (candles[index] && datetime > candles[index].datetime) {
           if (
             Math.abs(candles[index].datetime - datetime) <
@@ -58,40 +51,36 @@ export class BackTestHelper {
           }
           index++;
         }
-
-        // Update the index in the candle data
         candleData.index = index;
+        const current =
+          candles[index]?.datetime === datetime ? candles[index] : undefined;
 
-        // Skip if there are no candles at the updated index
-        if (!candles[index]) {
-          continue;
-        }
-
-        // If the datetime matches and the symbol hasn't been processed yet
-        if (datetime === candles[index].datetime) {
-          // we get the previous candle's close price.
-          // TODO need to validate that the previous candle has the right datetime
-          let candleToCopy: ICandle | undefined;
-          if (period < PeriodType.DAY) {
-            if (minutesSinceStart > 0) {
-              candleToCopy = candles[index - 1];
-            }
-          } else {
-            candleToCopy = candles[index];
+        if (period < PeriodType.DAY) {
+          // The bar that closes now is the candle that started one period
+          // ago. If it's missing (a gap, or the session's first minute), this
+          // symbol has no bar now. Trades fill at the next candle's open, or
+          // at this close when the next candle is missing.
+          const prev = candles[index - 1];
+          if (
+            minutesSinceStart <= 0 ||
+            !prev ||
+            prev.datetime !== datetime - period * CONSTANTS.MILLIS_IN_MINUTE
+          ) {
+            continue;
           }
-
-          if (!candleToCopy) continue;
-          // Add the candle data to the return array
           map.push({
-            ...candleToCopy,
+            ...prev,
             symbol,
-            price: candleToCopy.close,
-            tradePrice:
-              period === PeriodType.DAY
-                ? candleToCopy.close
-                : candles[index].open,
-            high: candleToCopy.high,
-            low: candleToCopy.low,
+            price: prev.close,
+            tradePrice: current ? current.open : prev.close,
+          });
+        } else if (current) {
+          // DAY candles are stamped at the trade time and fill at the close
+          map.push({
+            ...current,
+            symbol,
+            price: current.close,
+            tradePrice: current.close,
           });
         }
       }
@@ -109,18 +98,6 @@ export class BackTestHelper {
     const allCandleDataMaps: Partial<Record<PeriodType, ICandleDataMap>> = {};
     const debugCandles = process.env.BACKTEST_DEBUG_CANDLES === "1";
 
-    const now = new Date();
-    const isUTC = Intl.DateTimeFormat().resolvedOptions().timeZone === "UTC";
-    const easternDate = new Date(
-      now.toLocaleString("en-US", { timeZone: "America/New_York" }),
-    );
-    const dailyAdjustContext: IDailyAdjustContext = {
-      isUTC,
-      easternOffsetMin: Math.round(
-        (now.getTime() - easternDate.getTime()) / 60000,
-      ),
-    };
-
     for (const period of periods) {
       const candleData: ICandleDataMap = {};
 
@@ -134,7 +111,7 @@ export class BackTestHelper {
         };
       }
 
-      const transformedCandleResponses = await this.candleSource.fetch(
+      const transformedCandleResponses = await this.provider.getCandles(
         period,
         allNames,
         startTime,
@@ -149,36 +126,7 @@ export class BackTestHelper {
           continue;
         }
 
-        if (period === PeriodType.DAY) {
-          // Adjust datetime for daily candles to reflect market close time
-          candleData[response.symbol].candles = response.candles
-            .slice()
-            .map((candle) => {
-              const date = new Date(candle.datetime);
-
-              const mins =
-                (1440 +
-                  60 * date.getHours() +
-                  date.getMinutes() -
-                  dailyAdjustContext.easternOffsetMin) %
-                1440;
-              return {
-                ...candle,
-                datetime: this.candleSource.adjustDailyCandleTime(
-                  candle,
-                  mins,
-                  dailyAdjustContext,
-                ),
-              };
-            });
-        } else if (period === PeriodType.HOUR) {
-          // Filter candles to create hourly candles from 30-minute candles
-          candleData[response.symbol].candles = response.candles
-            .slice()
-            .filter((item) => item.datetime % CONSTANTS.MILLIS_IN_HOUR !== 0);
-        } else {
-          candleData[response.symbol].candles = response.candles.slice();
-        }
+        candleData[response.symbol].candles = response.candles;
       }
 
       // Assign the processed candle data to the map for the current period
@@ -234,7 +182,7 @@ export class BackTestHelper {
       Object.assign(analysisObj, scenario.variableValues);
       //analysisObj.filtName = filtName;
       for (const filter of dataFilters) {
-        const filtName = StrategyUtil.convertToVariableName(filter);
+        const filtName = `${filter.varName}${filter.timeAgo ?? ""}`;
 
         const candles = specificData.candles;
 

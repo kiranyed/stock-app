@@ -1,7 +1,7 @@
-//gets called by the router.  creates the jobs
+// Builds the jobs that BackTestService and LiveJobRunner run.
 
-import { StrategyType, ScreenerJobType, PeriodType } from "../constants";
-import { AnalysisBackTestFactory } from "../../factory/analysis-back-test-factory";
+import Error404 from "../../errors/error-404";
+import { ScreenerJobType } from "../constants";
 import { BackTestFactory } from "../../factory/back-test-factory";
 import { LiveJobFactory } from "../../factory/live-job-factory";
 import StockGroupMapper from "../../mappers/stock-group-mapper";
@@ -9,113 +9,69 @@ import StrategyMapper from "../../mappers/strategy-mapper";
 import { IStrategySimulationOptions } from "../../real-time-trading/strategy-simulation";
 import { IBackTestScreenerJob } from "../../types/data-processing-types";
 import { IStockGroup } from "../../types/entity-types";
-import { IFilterGroup, IFilter, IStrategy } from "../../types/strategy-types";
+import { IStrategy } from "../../types/strategy-types";
 import StockGroupRepository from "./repos/stock-group-repository";
 import StrategyRepository from "./repos/strategy-repository";
 
-//  the jobs are then used by  back test service or live job runner
 export class ScreenerJobService {
-  //return strategies
-  static async setUpStrategies(strategyId: string | string[], groupId: string) {
-    let strategies;
-    if (Array.isArray(strategyId)) {
-      strategies = await this.getStrategies(
-        strategyId.map((id) => parseInt(id)),
-      );
-    } else {
-      strategies = await this.getStrategy(parseInt(strategyId));
-    }
-    const group = await this.getGroup(parseInt(groupId));
-    return { strategies, group };
-    //return {runs, group};
+  /** The user's strategies and group, or Error404 if any of them is missing or someone else's. */
+  static async setUpStrategies(
+    userId: number,
+    strategyIds: number[],
+    groupId: number,
+  ): Promise<{ strategies: IStrategy[]; group: IStockGroup }> {
+    const unique = [...new Set(strategyIds)];
+    const [entities, [groupEntity]] = await Promise.all([
+      StrategyRepository.getOwnedStrategies(unique, userId),
+      StockGroupRepository.getOwnedGroup(groupId, userId),
+    ]);
+    if (!unique.length || entities.length !== unique.length) throw new Error404("strategy not found");
+    if (!groupEntity) throw new Error404("stock group not found");
+    // keep the caller's order
+    const byId = new Map(entities.map((e) => [e.id, StrategyMapper.convertEntityToStrategy(e)]));
+    return {
+      strategies: unique.map((id) => byId.get(id)!),
+      group: StockGroupMapper.convertEntityToGroup(groupEntity),
+    };
   }
 
   static async setUpStrategyRunsLive(
-    strategyId: string | string[],
-    groupId: string,
-    type: StrategyType,
+    userId: number,
+    strategyIds: number[],
+    groupId: number,
     simulationOptions?: IStrategySimulationOptions,
   ) {
-    const { strategies, group } = await this.setUpStrategies(
-      strategyId,
-      groupId,
-    );
-    const runs = this.createStrategyRuns(strategies, type, simulationOptions);
+    const { strategies, group } = await this.setUpStrategies(userId, strategyIds, groupId);
+    const runs = this.createStrategyRuns(strategies, simulationOptions);
     return { runs, group };
   }
 
   static async setUpStrategyBackTest(
-    strategyId: string | string[],
-    groupId: string,
-  ): Promise<{ runs: IBackTestScreenerJob[]; group: IStockGroup }> {
-    const { strategies, group } = await this.setUpStrategies(
-      strategyId,
-      groupId,
-    );
+    userId: number,
+    strategyIds: number[],
+    groupId: number,
+  ): Promise<{ runs: IBackTestScreenerJob[]; strategies: IStrategy[]; group: IStockGroup }> {
+    const { strategies, group } = await this.setUpStrategies(userId, strategyIds, groupId);
+    // the back test itself runs in a worker from `strategies`; these give the result rows their names
     const runs = strategies.map((strategy) =>
-      BackTestFactory.createBackTestInstance(
-        ScreenerJobType.STRATEGY,
-        strategy,
-      ),
+      BackTestFactory.createBackTestInstance(ScreenerJobType.STRATEGY, strategy),
     );
-    return { runs, group };
+    return { runs, strategies, group };
   }
 
-  //return analyses
-  static async setUpAnalysisBackTest(
-    period: PeriodType,
-    scenarioFilterGroup: IFilterGroup,
-    dataFilters: IFilter[],
-    groupId: string,
-  ) {
-    const analyses = AnalysisBackTestFactory.createAnalysisBackTest(
-      period,
-      scenarioFilterGroup,
-      dataFilters,
-    );
-    const group = await this.getGroup(parseInt(groupId));
-    return { analyses, group };
-  }
-
-  // static async setUpAnalysisLive(config: IAnalysisConfig, scenarioFilterGroup: IFilterGroup, dataFilters: IFilter[], groupId: number) {
-  //     const analysis = n
-  // }
-
-  static getStrategies(strategyIds: number[]) {
-    return StrategyRepository.getStrategies(strategyIds).then((entities) =>
-      entities.map((entity) => StrategyMapper.convertEntityToStrategy(entity)),
-    );
-  }
-
-  static getStrategy(strategyId: number) {
-    return StrategyRepository.getStrategies([strategyId]).then((entities) => {
-      return entities.map((entity) =>
-        StrategyMapper.convertEntityToStrategy(entity),
-      );
-    });
-  }
-
-  static getGroup(groupId: number) {
-    return StockGroupRepository.getGroup(groupId).then(
-      (entities) =>
-        entities.map((entity) =>
-          StockGroupMapper.convertEntityToGroup(entity),
-        )[0],
-    );
+  /** The user's group, or Error404 if it's missing or someone else's. */
+  static async getOwnedGroup(userId: number, groupId: number): Promise<IStockGroup> {
+    const [groupEntity] = await StockGroupRepository.getOwnedGroup(groupId, userId);
+    if (!groupEntity) throw new Error404("stock group not found");
+    return StockGroupMapper.convertEntityToGroup(groupEntity);
   }
 
   static createStrategyRuns(
     strategies: IStrategy[],
-    type: StrategyType,
     simulationOptions?: IStrategySimulationOptions,
   ) {
     return strategies.map((strategy) =>
-      LiveJobFactory.createLiveJobInstance(
-        ScreenerJobType.STRATEGY,
-        strategy,
-        type,
-        simulationOptions,
-      ),
+      LiveJobFactory.createLiveJobInstance(ScreenerJobType.STRATEGY, strategy, simulationOptions),
     );
   }
 }

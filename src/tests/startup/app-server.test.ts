@@ -1,13 +1,5 @@
-import bodyParser from "body-parser";
 import AppServer from "../../startup/app-server";
 import express from "express";
-
-jest.mock("body-parser", () => ({
-  json: jest.fn(() => (req: unknown, res: unknown, next: () => void) => next()),
-  urlencoded: jest.fn(
-    () => (req: unknown, res: unknown, next: () => void) => next(),
-  ),
-}));
 
 jest.mock("express", () => {
   const useMock = jest.fn();
@@ -36,6 +28,10 @@ jest.mock("express", () => {
 
   // Attach static properties to the express function
   (expressMock as jest.Mock & { static: jest.Mock }).static = staticMock;
+  Object.assign(expressMock, {
+    json: jest.fn(() => (req: unknown, res: unknown, next: () => void) => next()),
+    urlencoded: jest.fn(() => (req: unknown, res: unknown, next: () => void) => next()),
+  });
 
   (expressMock as jest.Mock & { Router: jest.Mock }).Router = RouterMock;
 
@@ -50,7 +46,6 @@ jest.mock("../../routers/run-router");
 jest.mock("../../routers/analysis-router");
 jest.mock("../../routers/util-router");
 jest.mock("../../routers/strategy-router");
-jest.mock("../../routers/trade-router");
 jest.mock("../../routers/group-router");
 jest.mock("../../routers/app-router");
 jest.mock("../../routers/user-router");
@@ -64,8 +59,8 @@ describe("AppServer", () => {
 
   it("should initialize the server with the correct settings", () => {
     expect(appServer).toBeInstanceOf(AppServer);
-    expect(bodyParser.json).toHaveBeenCalled();
-    expect(bodyParser.urlencoded).toHaveBeenCalled();
+    expect(express.json).toHaveBeenCalled();
+    expect(express.urlencoded).toHaveBeenCalledWith({ extended: true });
   });
 
   it("should have the correct server start message", () => {

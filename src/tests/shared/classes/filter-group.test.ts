@@ -1,145 +1,63 @@
 import { FilterGroup } from "../../../shared/classes/filter-group";
-import { StrategyUtil } from "../../../shared/utilities/strategy-util";
-import { IFilterGroup } from "../../../types/strategy-types";
+import { PeriodType } from "../../../shared/constants";
+import { IFilter } from "../../../types/strategy-types";
 
-jest.mock("../../../shared/utilities/strategy-util");
+const group = (...filters: IFilter[]) =>
+  new FilterGroup({ filters, connectors: filters.slice(1).map(() => "and") }, PeriodType.MINUTE);
+
+const pct = (operator: string, compareVal: string): IFilter => ({
+  operator,
+  varName: "percentchange",
+  timeAgo: "1",
+  compareVal,
+});
 
 describe("FilterGroup", () => {
-  let filterGroup: FilterGroup;
-  let mockFilterGroup: IFilterGroup;
-
-  beforeEach(() => {
-    mockFilterGroup = {
-      filters: [
-        {
-          operator: "=",
-          varName: "percentchange",
-          timeAgo: "1",
-          compareVal: "10",
-        },
-      ],
-      connectors: [],
-    };
-
-    filterGroup = new FilterGroup(mockFilterGroup);
-  });
-
   describe("run", () => {
-    it("should run the filter group and return true if all filters pass", () => {
-      const mockData = { percentchange1: { AAPL: 10 } };
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-      const result = filterGroup.run(mockData, "AAPL");
-
-      expect(result).toBe(true);
+    it("reads each filter's value under its engine key", () => {
+      expect(group(pct("=", "10")).run({ percentchange1: { AAPL: 10 } }, "AAPL")).toBe(true);
+      expect(group(pct("=", "10")).run({ percentchange1: { AAPL: 5 } }, "AAPL")).toBe(false);
     });
 
-    it("should run the filter group and return false if any filter fails", () => {
-      const mockData = { percentchange1: { AAPL: 5 } };
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-
-      jest.spyOn(filterGroup, "evaluateExpression").mockReturnValue(false);
-
-      const result = filterGroup.run(mockData, "AAPL");
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe("evaluateExpression", () => {
-    it("should evaluate the expression and return true if the condition is met", () => {
-      const mockData = { percentchange1: { AAPL: 10 } };
-      const filter = {
-        operator: "=",
-        varName: "percentchange",
-        timeAgo: "1",
-        compareVal: "10",
-      };
-
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-
-      const result = filterGroup.evaluateExpression(filter, "AAPL", mockData);
-
-      expect(result).toBe(true);
+    it("compares against a decimal constant", () => {
+      expect(group(pct(">", "10.5")).run({ percentchange1: { AAPL: 10.25 } }, "AAPL")).toBe(false);
+      expect(group(pct(">", "10.5")).run({ percentchange1: { AAPL: 10.75 } }, "AAPL")).toBe(true);
     });
 
-    it("should evaluate the expression with decimal compareVal", () => {
-      const filter = {
-        operator: ">",
-        varName: "percentchange",
-        timeAgo: "1",
-        discriminator: "",
-        compareVal: "10.5",
-      };
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-
-      const result = filterGroup.evaluateExpression(filter, "AAPL", {
-        percentchange1: { AAPL: 10.25 },
-      });
-
-      expect(result).toBe(false);
+    it("ands filters together", () => {
+      const g = group(pct(">", "1"), { operator: "<", varName: "rsi", timeAgo: "14", compareVal: "30" });
+      expect(g.run({ percentchange1: { AAPL: 2 }, rsi14: { AAPL: 20 } }, "AAPL")).toBe(true);
+      expect(g.run({ percentchange1: { AAPL: 2 }, rsi14: { AAPL: 40 } }, "AAPL")).toBe(false);
     });
 
-    it("should evaluate the expression and return false if the condition is not met", () => {
-      const filter = {
-        operator: "=",
-        varName: "percentchange",
-        timeAgo: "1",
-        discriminator: "",
-        compareVal: "10",
-      };
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-
-      const result = filterGroup.evaluateExpression(filter, "AAPL", {
-        percentchange1: { AAPL: 5 },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it("should evaluate the expression containing a compare variable", () => {
-      const filter = {
+    it("compares against a compare variable times its coefficient", () => {
+      const g = group({
         operator: "<",
         varName: "percentchange",
         timeAgo: "1",
-        discriminator: "",
         compareVal: "",
         compareVar: "rsi",
         compareVarTimeAgo: "120",
         compareVarCoefficient: "2",
-      };
-      StrategyUtil.convertToVariableName = jest
-        .fn()
-        .mockReturnValue("percentchange1");
-      StrategyUtil.convertToCompareVarName = jest
-        .fn()
-        .mockReturnValue("rsi120");
-
-      const result = filterGroup.evaluateExpression(filter, "AAPL", {
-        percentchange1: { AAPL: 5 },
-        rsi120: { AAPL: 3 },
       });
+      expect(g.run({ percentchange1: { AAPL: 5 }, rsi120: { AAPL: 3 } }, "AAPL")).toBe(true);
+      expect(g.run({ percentchange1: { AAPL: 7.2 }, rsi120: { AAPL: 3.66 } }, "AAPL")).toBe(true);
+      expect(g.run({ percentchange1: { AAPL: 8 }, rsi120: { AAPL: 3 } }, "AAPL")).toBe(false);
+    });
 
-      expect(result).toBe(true);
+    it("a compare variable that isn't known yet fails instead of comparing against compareVal", () => {
+      const g = group({ operator: "<", varName: "percentchange", timeAgo: "1", compareVal: "100", compareVar: "priceSma", compareVarTimeAgo: "20" });
+      expect(g.run({ percentchange1: { AAPL: 5 }, priceSma20: { AAPL: NaN } }, "AAPL")).toBe(false);
+    });
 
-      const result2 = filterGroup.evaluateExpression(filter, "AAPL", {
-        percentchange1: { AAPL: 7.2 },
-        rsi120: { AAPL: 3.66 },
-      });
-      expect(result2).toBe(true);
+    it("lists the variables its filters read", () => {
+      const g = group({ operator: "<", varName: "percentchange", timeAgo: "1", compareVal: "", compareVar: "priceSma", compareVarTimeAgo: "20" });
+      expect(g.getVariables().map((v) => v.name)).toEqual(["percentchange1", "priceSma20"]);
     });
   });
 
   describe("resolveOperator", () => {
+    const filterGroup = group(pct("=", "10"));
     it("should resolve the operator and return true for equality", () => {
       const op1 = 10;
       const op2 = 10;

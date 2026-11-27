@@ -1,411 +1,179 @@
-import { CONSTANTS, StrategyType } from "../shared/constants";
-import { StockTradeUtil } from "../shared/utilities/stock-trade";
-import { SchwabAPI } from "../shared/services/trading-api";
-import MasterJob from "../shared/classes/master-job";
-import { IJob } from "../types/data-processing-types";
+import { CONSTANTS } from "../shared/constants";
+import { marketData } from "../providers/market-data";
+import { EASTERN, wallClock } from "../providers/candles";
+import { AlertOutbox } from "../notify/alert-outbox";
 
-enum DAY {
-  SUNDAY,
-  MONDAY,
-  TUESDAY,
-  WEDNESDAY,
-  THURSDAY,
-  FRIDAY,
-  SATURDAY,
+/** What the scheduler runs once a minute: the live master job. */
+export interface ITickJob {
+  /** `time` is the start of the minute (ms), the same time a back test uses for that bar. */
+  run(time: number): Promise<void> | void;
 }
 
+const { MILLIS_IN_MINUTE, BEGIN_TIME, END_TIME } = CONSTANTS;
+
+/** Fire this long after each minute boundary, so the last trades of the minute are in the quotes. */
+export const TICK_DELAY_MS = 1000;
+/** After this many failed ticks in a row, log an error that says ticks keep failing. */
+export const FAILURES_BEFORE_ALERT = 5;
+/** After this many minutes in a row skipped because a tick is still running, log an error. */
+export const SKIPS_BEFORE_ALERT = 5;
+
+const minuteStart = (t: number) => t - (t % MILLIS_IN_MINUTE);
+
+/**
+ * Runs the live master job at the start of every minute of the regular session (9:30–16:00
+ * Eastern) on days the market is open.
+ *
+ * - One timer, set for the next minute boundary each time it fires, so ticks stay on the
+ *   minute and don't drift. Daylight saving needs no handling: minutes are the same in every zone.
+ * - A tick that throws is logged and the next minute runs as usual (PRODUCTION-READINESS.md §2.5).
+ *   After {@link FAILURES_BEFORE_ALERT} failures in a row it sends an alert, and another on recovery.
+ * - Two ticks never run at once (§2.6). If the previous tick is still running when a minute starts,
+ *   that minute waits and runs as soon as it finishes, so a slow 15:58 doesn't lose the day's DAY
+ *   bar. Only the latest waiting minute is kept; any it replaces are logged as not run.
+ * - The market-open check is made on the first minute of the session each day. A failed or
+ *   "closed" answer is asked again the next minute, so a status that's a moment late at 9:30
+ *   costs one minute, not the day.
+ */
 export class StrategyScheduler {
-  type: StrategyType;
+  private job?: ITickJob;
+  private timer?: NodeJS.Timeout;
+  private running = false;
+  /** The latest minute that started while a tick was running; it runs when that tick finishes. */
+  private waiting?: number;
+  private lastTick?: number;
+  private failures = 0;
+  private skips = 0;
+  /** The last market-open answer and the Eastern date it was for. Only "open" is kept for the day. */
+  private marketDay?: { date: string; open: boolean };
 
-  constructor(type: StrategyType) {
-    this.type = type;
+  /** Start running `job` every minute. Replaces any job already scheduled. */
+  scheduleStrategies(job: ITickJob) {
+    this.stopAll();
+    this.job = job;
+    this.lastTick = undefined;
+    this.failures = 0;
+    this.skips = 0;
+    this.scheduleNext();
   }
 
-  screeningIntervalSim: NodeJS.Timeout | undefined;
-  screeningIntervalReal: NodeJS.Timeout | undefined;
-  screeningIntervalSimDayInt: NodeJS.Timeout | undefined;
-  delayedStartTimeout: NodeJS.Timeout | undefined;
-  private lifecycleId = 0;
-
-  private getScreeningInterval() {
-    return this.type === StrategyType.SIMULATION
-      ? this.screeningIntervalSim
-      : this.screeningIntervalReal;
-  }
-
-  private setScreeningInterval(interval: NodeJS.Timeout | undefined) {
-    if (this.type === StrategyType.SIMULATION) {
-      this.screeningIntervalSim = interval;
-    } else {
-      this.screeningIntervalReal = interval;
-    }
-  }
-
+  /** Stop ticking. A tick already running finishes. */
   stopAll() {
-    this.lifecycleId += 1;
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = undefined;
+    this.job = undefined;
+    this.waiting = undefined;
+  }
 
-    console.debug("[StrategyScheduler] stopAll invoked", {
-      lifecycleId: this.lifecycleId,
-      type: this.type,
-      hadMinuteInterval: Boolean(this.getScreeningInterval()),
-      hadDayInterval: Boolean(this.screeningIntervalSimDayInt),
-      hadDelayedStartTimeout: Boolean(this.delayedStartTimeout),
-    });
+  private scheduleNext() {
+    const now = Date.now();
+    let next = minuteStart(now) + TICK_DELAY_MS;
+    if (next <= now) next += MILLIS_IN_MINUTE;
+    this.timer = setTimeout(() => this.onTimer(), next - now);
+    // a live run alone shouldn't keep the process (or a test) from exiting
+    this.timer.unref?.();
+  }
 
-    const interval = this.getScreeningInterval();
-    if (interval) {
-      clearInterval(interval);
-      this.setScreeningInterval(undefined);
+  private onTimer() {
+    const job = this.job;
+    if (!job) return;
+    this.scheduleNext();
+    this.start(job, minuteStart(Date.now()));
+  }
+
+  private start(job: ITickJob, time: number) {
+    this.tick(job, time).catch((err) => console.error("[StrategyScheduler] tick failed unexpectedly", err));
+  }
+
+  private async tick(job: ITickJob, time: number) {
+    const clock = wallClock(time, EASTERN);
+    const minute = clock.hour * 60 + clock.minute;
+    const weekday = new Date(Date.UTC(clock.year, clock.month - 1, clock.day)).getUTCDay();
+    if (weekday === 0 || weekday === 6 || minute < BEGIN_TIME || minute >= END_TIME) return;
+
+    if (this.running) {
+      if (this.waiting !== undefined) {
+        console.warn(`[StrategyScheduler] ${iso(this.waiting)} didn't run: the minutes before it were still running`);
+      }
+      this.waiting = time;
+      this.skips += 1;
+      console.warn(`[StrategyScheduler] ${iso(time)} waits: the previous minute is still running`);
+      if (this.skips === SKIPS_BEFORE_ALERT) {
+        const text = `${SKIPS_BEFORE_ALERT} minutes in a row started while a live tick was still running (since ${iso(this.lastTick ?? time)}); it may be stuck.`;
+        console.error(`[StrategyScheduler] ${text}`);
+        void AlertOutbox.enqueue({ kind: "system", subject: "Live runs may be stuck", body: text, dedupKey: `ticks-stuck:${time}` });
+      }
+      return;
     }
+    // set before any await, so a tick started meanwhile sees it
+    this.running = true;
+    this.skips = 0;
+    try {
+      const date = `${clock.year}-${clock.month}-${clock.day}`;
+      if (!(await this.isMarketOpen(date))) return;
 
-    if (this.screeningIntervalSimDayInt) {
-      clearInterval(this.screeningIntervalSimDayInt);
-      this.screeningIntervalSimDayInt = undefined;
-    }
+      if (this.lastTick !== undefined && time - this.lastTick > MILLIS_IN_MINUTE && this.sameDay(this.lastTick, date)) {
+        const missed = (time - this.lastTick) / MILLIS_IN_MINUTE - 1;
+        console.warn(`[StrategyScheduler] ${missed} minute(s) before ${iso(time)} didn't run`);
+      }
+      this.lastTick = time;
 
-    if (this.delayedStartTimeout) {
-      clearTimeout(this.delayedStartTimeout);
-      this.delayedStartTimeout = undefined;
+      const started = Date.now();
+      await job.run(time);
+      const took = Date.now() - started;
+      if (took > MILLIS_IN_MINUTE / 2) {
+        console.warn(`[StrategyScheduler] the tick at ${iso(time)} took ${took} ms`);
+      }
+      this.succeeded();
+    } catch (err) {
+      this.failed(time, err);
+    } finally {
+      this.running = false;
+      const waiting = this.waiting;
+      this.waiting = undefined;
+      if (waiting !== undefined && this.job === job) {
+        console.warn(`[StrategyScheduler] running ${iso(waiting)} late`);
+        this.start(job, waiting);
+      }
     }
   }
 
-  private async startIntervals(job: IJob, lifecycleId: number) {
-    const { END_TIME, MILLIS_IN_MINUTE, MILLIS_IN_DAY } = CONSTANTS;
-    /* need to handle situation where user adds new simulation that has a min period that is less
-        than the current.  Or, just use minute intervals.. */
-
-    // const endTime = type === 'simulation' ? SIM_END_TIME : END_TIME;
-    const startDate = new Date();
-    const initialOffset = startDate.getTimezoneOffset();
-
-    console.debug("[StrategyScheduler] startIntervals", {
-      lifecycleId,
-      activeLifecycleId: this.lifecycleId,
-      type: this.type,
-      startedAt: startDate.toISOString(),
-      initialOffset,
-    });
-
-    //TODO get rid of this
-    const prepareJob = async () => {
-      if (lifecycleId !== this.lifecycleId) {
-        console.debug("[StrategyScheduler] prepareJob skipped due to stale lifecycle", {
-          lifecycleId,
-          activeLifecycleId: this.lifecycleId,
-        });
-        return;
-      }
-
-      // this crashes the whole app if schwab api returns 401
-      const marketOpen = await SchwabAPI.isMarketOpen();
-
-      console.debug("[StrategyScheduler] market open check", {
-        lifecycleId,
-        activeLifecycleId: this.lifecycleId,
-        marketOpen,
-      });
-
-      if (lifecycleId !== this.lifecycleId) {
-        console.debug("[StrategyScheduler] prepareJob aborted after market check; stale lifecycle", {
-          lifecycleId,
-          activeLifecycleId: this.lifecycleId,
-        });
-        return;
-      }
-
-      if (marketOpen) {
-        const interval = setInterval(async () => {
-          try {
-            if (lifecycleId !== this.lifecycleId) {
-              clearInterval(interval);
-              return;
-            }
-
-            const ecm2 = StockTradeUtil.getMinutesInDayEastCoastSlow();
-            console.debug("[StrategyScheduler] minute tick", {
-              lifecycleId,
-              activeLifecycleId: this.lifecycleId,
-              eastCoastMinute: ecm2,
-              endTime: END_TIME,
-            });
-            if (ecm2 >= END_TIME) {
-              if (job.clearIntradayStateData) {
-                job.clearIntradayStateData();
-              }
-              clearInterval(interval);
-              this.setScreeningInterval(undefined);
-              console.debug("[StrategyScheduler] stopped minute interval at end of trading window", {
-                lifecycleId,
-                eastCoastMinute: ecm2,
-              });
-            } else {
-              console.debug("[StrategyScheduler] executing scheduled job.run", {
-                lifecycleId,
-                eastCoastMinute: ecm2,
-              });
-              await job.run();
-            }
-          } catch (error) {
-            console.log("Error in startIntervals(), prepareJob(), " + error);
-            clearInterval(interval);
-            this.setScreeningInterval(undefined);
-          }
-        }, MILLIS_IN_MINUTE);
-        this.setScreeningInterval(interval);
-        console.debug("[StrategyScheduler] minute interval started", {
-          lifecycleId,
-          intervalMs: MILLIS_IN_MINUTE,
-        });
-        const newDate = new Date();
-        if (newDate.getTimezoneOffset() !== initialOffset) {
-          // restartIntervalWithNewOffset(); /* TODO CHANGE THIS*/
-        }
-
-        if (lifecycleId !== this.lifecycleId) {
-          clearInterval(interval);
-          this.setScreeningInterval(undefined);
-          console.debug("[StrategyScheduler] minute interval cleared; stale lifecycle detected", {
-            lifecycleId,
-            activeLifecycleId: this.lifecycleId,
-          });
-          return;
-        }
-
-        console.debug("[StrategyScheduler] running immediate job.run after interval setup", {
-          lifecycleId,
-        });
-        await job.run();
-      }
-    };
-    if (this.screeningIntervalSimDayInt) {
-      clearInterval(this.screeningIntervalSimDayInt);
-      this.screeningIntervalSimDayInt = undefined;
+  /** Whether the market is open on `date`: asked until it says open, then kept for the day. Throws if it can't tell. */
+  private async isMarketOpen(date: string): Promise<boolean> {
+    const known = this.marketDay;
+    if (known?.date === date && known.open) return true;
+    const open = await marketData().isMarketOpen();
+    if (known?.date !== date || known.open !== open) {
+      console.log(`[StrategyScheduler] market ${open ? "open" : "closed"} on ${date}`);
     }
-    this.screeningIntervalSimDayInt = setInterval(async () => {
-      try {
-        if (lifecycleId !== this.lifecycleId) {
-          if (this.screeningIntervalSimDayInt) {
-            clearInterval(this.screeningIntervalSimDayInt);
-            this.screeningIntervalSimDayInt = undefined;
-          }
-          return;
-        }
-
-        console.debug("[StrategyScheduler] daily interval tick", {
-          lifecycleId,
-          activeLifecycleId: this.lifecycleId,
-        });
-
-        await prepareJob();
-      } catch (error) {
-        console.log("Error in daily interval: " + error);
-        if (this.screeningIntervalSimDayInt) {
-          clearInterval(this.screeningIntervalSimDayInt);
-          this.screeningIntervalSimDayInt = undefined;
-        }
-      }
-    }, MILLIS_IN_DAY);
-
-    console.debug("[StrategyScheduler] daily interval started", {
-      lifecycleId,
-      intervalMs: MILLIS_IN_DAY,
-    });
-
-    await prepareJob();
+    this.marketDay = { date, open };
+    return open;
   }
 
-  async scheduleStrategies(job: MasterJob, defaultTimeUntilStart?: number) {
-    const lifecycleId = ++this.lifecycleId;
-
-    const { BEGIN_TIME, END_TIME, MILLIS_IN_MINUTE, MILLIS_IN_DAY, MINS_IN_DAY } = CONSTANTS;
-    const begin = BEGIN_TIME;
-    const end = END_TIME;
-    const EIGHT_AM_EST_MINUTES = 8 * 60; // 480 minutes
-
-    let timeUntilStart = defaultTimeUntilStart ? defaultTimeUntilStart : 0;
-
-    const eastCoastMinutes = StockTradeUtil.getMinutesInDayEastCoastSlow();
-    if (!timeUntilStart) {
-      timeUntilStart =
-        eastCoastMinutes < begin
-          ? begin - eastCoastMinutes
-          : eastCoastMinutes >= end
-            ? MINS_IN_DAY - (eastCoastMinutes - begin)
-            : 0;
-      timeUntilStart *= MILLIS_IN_MINUTE;
-    }
-
-    console.debug("[StrategyScheduler] scheduleStrategies", {
-      lifecycleId,
-      type: this.type,
-      defaultTimeUntilStart,
-      computedTimeUntilStart: timeUntilStart,
-    });
-
-    // Schedule daily maintenance at 8 AM EST
-    const minsUntil8am =
-      eastCoastMinutes < EIGHT_AM_EST_MINUTES
-        ? EIGHT_AM_EST_MINUTES - eastCoastMinutes
-        : MINS_IN_DAY - (eastCoastMinutes - EIGHT_AM_EST_MINUTES);
-    const msUntil8am = minsUntil8am * MILLIS_IN_MINUTE;
-    setTimeout(() => {
-      if (lifecycleId !== this.lifecycleId) return;
-      job.runDailyMaintenance();
-      const maintenanceInterval = setInterval(() => {
-        if (lifecycleId !== this.lifecycleId) {
-          clearInterval(maintenanceInterval);
-          return;
-        }
-        job.runDailyMaintenance();
-      }, MILLIS_IN_DAY);
-    }, msUntil8am);
-
-    this.delayedStartTimeout = setTimeout(() => {
-      if (lifecycleId !== this.lifecycleId) {
-        console.debug("[StrategyScheduler] delayed start skipped due to stale lifecycle", {
-          lifecycleId,
-          activeLifecycleId: this.lifecycleId,
-        });
-        return;
-      }
-
-      console.debug("[StrategyScheduler] delayed start firing", {
-        lifecycleId,
-        type: this.type,
-      });
-
-      this.startIntervals(job, lifecycleId).catch((error) => {
-        console.log("Error in delayed startIntervals: " + error);
-      });
-      this.delayedStartTimeout = undefined;
-    }, timeUntilStart);
+  private sameDay(t: number, date: string) {
+    const c = wallClock(t, EASTERN);
+    return `${c.year}-${c.month}-${c.day}` === date;
   }
 
-  private inTradingTime(currentTime: number, offset: number) {
-    const currentDate = new Date(currentTime);
-    const todaysMinutes = StockTradeUtil.getMinutesInDay(currentDate);
-    const retVal =
-      (currentDate.getDay() + 1) % 7 > 1 &&
-      todaysMinutes + offset >= CONSTANTS.BEGIN_TIME &&
-      todaysMinutes + offset < CONSTANTS.END_TIME;
-    return retVal;
+  private succeeded() {
+    if (this.failures >= FAILURES_BEFORE_ALERT) {
+      const text = `Live runs are getting data again after ${this.failures} failed minutes.`;
+      console.error(`[StrategyScheduler] ${text}`);
+      void AlertOutbox.enqueue({ kind: "system", subject: "Live runs recovered", body: text });
+    }
+    this.failures = 0;
   }
 
-  private adjustDayLightSavings(
-    currentTime: number,
-    adjustment: number,
-    offset: number,
-    testStartTime: number,
-  ) {
-    currentTime += this.getTimeUntilNextTradingTime(currentTime);
-    const { MILLIS_IN_DAY, MILLIS_IN_HOUR } = CONSTANTS;
-    const test = (currentTime - (testStartTime + adjustment)) % MILLIS_IN_DAY;
-    if (test === MILLIS_IN_HOUR) {
-      adjustment = MILLIS_IN_HOUR;
-      offset = StockTradeUtil.computeOffset(currentTime);
-    } else if (test === CONSTANTS.MILLIS_IN_DAY - CONSTANTS.MILLIS_IN_HOUR) {
-      adjustment = -MILLIS_IN_HOUR;
-      offset = StockTradeUtil.computeOffset(currentTime);
-    } else if (test !== 0) {
-      console.log(
-        "shouldn    t be here (the last else if statement in StrategyScheduler.adjustDayLightSavings())",
-      );
+  private failed(time: number, err: unknown) {
+    this.failures += 1;
+    console.error(`[StrategyScheduler] the tick at ${iso(time)} failed (${this.failures} in a row)`, err);
+    if (this.failures === FAILURES_BEFORE_ALERT) {
+      const reason = err instanceof Error ? err.message : String(err);
+      const text = `The last ${FAILURES_BEFORE_ALERT} live minutes failed, so live runs aren't getting data. Latest error: ${reason}`;
+      console.error(`[StrategyScheduler] ${text}`);
+      void AlertOutbox.enqueue({ kind: "system", subject: "Live runs aren't getting data", body: text, dedupKey: `ticks-failing:${time}` });
     }
-    return [adjustment, offset];
-  }
-
-  private getTimeUntilNextTradingTime(currentTime: number) {
-    let time = 0;
-    const currentDate = StockTradeUtil.getEastCoastDate(new Date(currentTime));
-    const curDay = currentDate.getDay();
-    const mins = StockTradeUtil.getMinutesInDay(currentDate);
-    const { MINS_IN_DAY, BEGIN_TIME, END_TIME, MILLIS_IN_MINUTE } = CONSTANTS;
-    if (curDay === DAY.SUNDAY) {
-      if (mins < BEGIN_TIME) {
-        time = MINS_IN_DAY + (BEGIN_TIME - mins);
-      } else {
-        time = MINS_IN_DAY - (mins - BEGIN_TIME);
-      }
-    } else if (curDay === DAY.SATURDAY) {
-      if (mins < BEGIN_TIME) {
-        time = 2 * MINS_IN_DAY + (BEGIN_TIME - mins);
-      } else {
-        time = 2 * MINS_IN_DAY - (mins - BEGIN_TIME);
-      }
-    } else if (curDay === DAY.FRIDAY && mins >= END_TIME) {
-      if (mins >= END_TIME) {
-        time = MINS_IN_DAY - (mins - BEGIN_TIME) + 2 * MINS_IN_DAY;
-      }
-    } else {
-      if (mins < BEGIN_TIME) {
-        time = BEGIN_TIME - mins;
-      } else if (mins >= END_TIME) {
-        time = MINS_IN_DAY - (mins - BEGIN_TIME);
-      }
-    }
-    return time * MILLIS_IN_MINUTE;
   }
 }
 
-/* CHATGBT suggestion
-
-scheduleBackTest(config: ITestConfig, job: Job) {
-    const { startTime, endTime } = config;
-    const { MILLIS_IN_MINUTE } = CONSTANTS;
-    let currentTime = startTime + this.getTimeUntilNextTradingTime(startTime);
-    let adjustment = 0;
-    let offset = StockTradeUtil.computeOffset(currentTime);
-
-    while (currentTime <= endTime) {
-        while (this.inTradingTime(currentTime, offset)) {
-            const minutesSinceStart = (currentTime - startTime) / MILLIS_IN_MINUTE;
-            job(minutesSinceStart, currentTime);
-            currentTime += MILLIS_IN_MINUTE;
-        }
-        [adjustment, offset] = this.adjustDaylightSavings(currentTime, adjustment, offset, startTime);
-    }
-}
-
-private inTradingTime(currentTime: number, offset: number): boolean {
-    const date = new Date(currentTime);
-    const minutes = StockTradeUtil.getMinutesInDay(date) + offset;
-    const isWeekday = date.getDay() % 7 > 0 && date.getDay() % 7 < 6; // Mon to Fri
-    const isTradingHours = minutes >= 570 && minutes < 960; // 9:30 AM to 4:00 PM
-    return isWeekday && isTradingHours;
-}
-
-private adjustDaylightSavings(currentTime: number, adjustment: number, offset: number, startTime: number): [number, number] {
-    currentTime += this.getTimeUntilNextTradingTime(currentTime);
-    const { MILLIS_IN_DAY, MILLIS_IN_HOUR } = CONSTANTS;
-    const elapsed = (currentTime - (startTime + adjustment)) % MILLIS_IN_DAY;
-
-    if (elapsed === MILLIS_IN_HOUR) {
-        adjustment += 60 * 60000;
-    } else if (elapsed === MILLIS_IN_DAY - MILLIS_IN_HOUR) {
-        adjustment -= 60 * 60000;
-    }
-
-    offset = StockTradeUtil.computeOffset(currentTime);
-    return [adjustment, offset];
-}
-
-private getTimeUntilNextTradingTime(currentTime: number): number {
-    const date = StockTradeUtil.getEastCoastDate(new Date(currentTime));
-    const day = date.getDay();
-    const minutes = StockTradeUtil.getMinutesInDay(date);
-    const { MINS_IN_DAY, BEGIN_TIME, END_TIME, MILLIS_IN_MINUTE } = CONSTANTS;
-
-    let timeToNextTrade = 0;
-
-    if (day === DAY.SATURDAY || (day === DAY.FRIDAY && minutes >= END_TIME)) {
-        timeToNextTrade = MINS_IN_DAY - minutes + BEGIN_TIME + (day === DAY.FRIDAY ? MINS_IN_DAY * 2 : 0);
-    } else if (minutes < BEGIN_TIME) {
-        timeToNextTrade = BEGIN_TIME - minutes;
-    } else if (minutes >= END_TIME) {
-        timeToNextTrade = MINS_IN_DAY - minutes + BEGIN_TIME;
-    }
-
-    return timeToNextTrade * MILLIS_IN_MINUTE;
-}
-
-*/
+const iso = (t: number) => new Date(t).toISOString();

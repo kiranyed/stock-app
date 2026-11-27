@@ -1,138 +1,78 @@
 import { BackTestHelper } from "../back-testing/back-test-helper";
 import { BackTestService } from "./back-test-service";
-import { DataHandler } from "./data-handler";
 import { ITestConfig } from "../types/back-test-types";
-import {
-  IInitializedJobData,
-  IJob,
-  IStockScreenerJob,
-} from "../types/data-processing-types";
+import { IJob, IStockScreenerJob } from "../types/data-processing-types";
 import { IStockGroup } from "../types/entity-types";
 import { CONSTANTS, PeriodType } from "../shared/constants";
 import { StockTradeUtil } from "../shared/utilities/stock-trade";
+import { BarInput, IndicatorEngine } from "../engine/engine";
+import { candleToBar, duePeriods } from "../engine/bars";
 
+const SESSION_MINUTES = CONSTANTS.END_TIME - CONSTANTS.BEGIN_TIME;
+
+/**
+ * Builds an engine with the indicators `jobs` need for `group`, and replays
+ * enough history through it (the same backtest feed, every period, intraday
+ * included) for each indicator to be valid. LiveMasterJob.addJobs copies the
+ * resulting state into its own indicators.
+ */
 export class HistoricalWarmupService {
-  static async warmInitializedSlice(
+  static async warm(
     jobs: IStockScreenerJob[],
     group: IStockGroup,
-    slice: IInitializedJobData,
     endTime = Date.now(),
-  ): Promise<IInitializedJobData> {
-    console.log('preparing to warm up slice with historical data');
-    const periods = CONSTANTS.PERIODS.filter(
-      (period) => period >= PeriodType.DAY && (slice.newNames[period]?.length ?? 0) > 0,
+  ): Promise<IndicatorEngine> {
+    const engine = new IndicatorEngine();
+    for (const job of jobs) {
+      for (const symbol of group.symbols) {
+        engine.add(symbol.trim(), { kind: "price" }, job.getPeriod());
+        for (const { spec } of job.getVariables()) {
+          if (spec) engine.add(symbol.trim(), spec, job.getPeriod());
+        }
+      }
+    }
+
+    const periods = engine.periods();
+    const tradingDays = Math.max(
+      ...periods.map((p) => this.tradingDaysFor(p, engine.warmupBars(p))),
     );
-    if (!periods.length) {
-      return slice;
+    if (!periods.length || tradingDays <= 0) {
+      return engine;
     }
 
-    const maxSpace = this.getMaxSpace(slice.newMemories, periods);
-    if (maxSpace <= 1) {
-      return slice;
-    }
-
-    const calendarDays = Math.ceil((maxSpace * 7) / 5) + 5;
-    const warmupEndTime = this.getWarmupEndTime(endTime);
-    const startTime = warmupEndTime - calendarDays * CONSTANTS.MILLIS_IN_DAY;
-    const helper = new BackTestHelper();
-    const symbols = this.collectSymbols(slice, periods);
+    // calendar days, with slack for weekends and holidays
+    const calendarDays = Math.ceil(tradingDays * 1.5) + 5;
     const config: ITestConfig = {
-      startTime,
-      endTime: warmupEndTime,
-      minimumPeriod: PeriodType.DAY,
+      startTime: endTime - calendarDays * CONSTANTS.MILLIS_IN_DAY,
+      endTime: endTime - (endTime % CONSTANTS.MILLIS_IN_MINUTE) - CONSTANTS.MILLIS_IN_MINUTE,
+      minimumPeriod: periods[0],
     };
+    console.log(`warming up ${periods.join(", ")}-minute indicators over ${tradingDays} trading days`);
 
-    await helper.initCandleData(config, periods, symbols);
+    const helper = new BackTestHelper();
+    await helper.initCandleData(config, periods, [...new Set(group.symbols.map((s) => s.trim()))]);
 
-    const replayJob: IJob = {
+    const replay: IJob = {
       run: (time: number) => {
-        this.replayDataAtTime(helper, jobs, slice, periods, time);
+        const due = duePeriods(time, periods);
+        if (!due.length) return;
+        const minutesSinceStart =
+          StockTradeUtil.getMinutesInDayEastCoast(new Date(time)) - CONSTANTS.BEGIN_TIME;
+        const data = helper.getTestData(time, due, minutesSinceStart);
+        const bars: Partial<Record<PeriodType, BarInput[]>> = {};
+        for (const p of due) bars[p] = (data[p] ?? []).map(candleToBar);
+        engine.onBars(time, bars);
       },
-      clearIntradayStateData: () => {},
     };
-
-    BackTestService.iterateThroughCandlesAndRun(replayJob, config);
-    console.log('finished warming up slice with historical data');
-    return slice;
+    BackTestService.iterateThroughCandlesAndRun(replay, config);
+    console.log("finished warming up indicators");
+    return engine;
   }
 
-  private static getMaxSpace(
-    memories: IInitializedJobData["newMemories"],
-    periods: PeriodType[],
-  ) {
-    let maxSpace = 0;
-    periods.forEach((period) => {
-      const periodMemories = memories[period] || {};
-      Object.values(periodMemories).forEach((symbols) => {
-        Object.values(symbols || {}).forEach((memory) => {
-          maxSpace = Math.max(maxSpace, period > PeriodType.DAY ? memory.space * 7 : memory.space);
-        });
-      });
-    });
-    return maxSpace;
-  }
-
-  private static collectSymbols(
-    slice: IInitializedJobData,
-    periods: PeriodType[],
-  ) {
-    return [...new Set(periods.flatMap((period) => slice.newNames[period] || []))];
-  }
-
-  private static getWarmupEndTime(endTime: number) {
-    const aligned = StockTradeUtil.getEastCoastDate(new Date(endTime));
-    aligned.setHours(15, 59, 0, 0);
-    aligned.setDate(aligned.getDate() - 1);
-
-    // Step back over weekends so the endpoint is always a trading weekday.
-    while (aligned.getDay() === 0 || aligned.getDay() === 6) {
-      aligned.setDate(aligned.getDate() - 1);
-    }
-
-    return aligned.getTime();
-  }
-
-  private static replayDataAtTime(
-    helper: BackTestHelper,
-    jobs: IStockScreenerJob[],
-    slice: IInitializedJobData,
-    periods: PeriodType[],
-    time: number,
-  ) {
-    const minutesSinceStart =
-      StockTradeUtil.getMinutesInDayEastCoast(new Date(time)) -
-      CONSTANTS.BEGIN_TIME;
-    const timePeriodsToScreen = periods.filter(
-      (period) =>
-        (period === PeriodType.DAY &&
-          minutesSinceStart ===
-            CONSTANTS.DAY_PERIOD_TRADE_TIME - CONSTANTS.BEGIN_TIME) ||
-        (period < PeriodType.DAY && minutesSinceStart % period === 0),
-    );
-
-    if (!timePeriodsToScreen.length) {
-      return;
-    }
-
-    const data = helper.getTestData(time, timePeriodsToScreen, minutesSinceStart);
-    const hasAnyData = timePeriodsToScreen.some((period) => (data[period]?.length ?? 0) > 0);
-    if (!hasAnyData) {
-      return;
-    }
-
-    DataHandler.adjustMemory(
-      slice.newMemories,
-      data,
-      timePeriodsToScreen,
-      slice.newFilterData,
-    );
-    DataHandler.processDataBackTest(
-      data,
-      jobs,
-      time,
-      timePeriodsToScreen,
-      slice.newFilterData,
-      slice.newMemories,
-    );
+  /** Trading days of history that hold `bars` bars of `period`, plus one. */
+  static tradingDaysFor(period: PeriodType, bars: number): number {
+    if (bars <= 1) return 0;
+    const perDay = period >= PeriodType.DAY ? 1 : Math.floor(SESSION_MINUTES / period);
+    return Math.ceil(bars / perDay) + 1;
   }
 }

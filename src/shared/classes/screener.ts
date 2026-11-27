@@ -6,26 +6,17 @@ import {
   IFlagFilterGroupPair,
 } from "../../types/strategy-types";
 import { FilterGroup } from "./filter-group";
-import { resolveFilterVariables } from "../utilities/filter-variable-resolver";
+import { PeriodType } from "../constants";
+import { FilterVariable } from "../../engine/filter-specs";
+
+const EMPTY = { filters: [], connectors: [] };
 
 /* the screener runs the logic for determining whether to buy or sell, given new data */
 export class Screener {
-  private buyFilters: FilterGroup = new FilterGroup({
-    filters: [],
-    connectors: [],
-  });
-  private sellFilters: FilterGroup = new FilterGroup({
-    filters: [],
-    connectors: [],
-  });
-  private shortFilters: FilterGroup = new FilterGroup({
-    filters: [],
-    connectors: [],
-  });
-  private coverFilters: FilterGroup = new FilterGroup({
-    filters: [],
-    connectors: [],
-  });
+  private buyFilters: FilterGroup;
+  private sellFilters: FilterGroup;
+  private shortFilters: FilterGroup;
+  private coverFilters: FilterGroup;
   buySellFilters: IFilterGroupPair = {
     enter: { filters: [], connectors: [] },
     exit: { filters: [], connectors: [] },
@@ -35,7 +26,11 @@ export class Screener {
     exit: { filters: [], connectors: [] },
   };
   flags: IFlagFilterGroupPair[] = [];
-  constructor(screener: IScreener) {
+  constructor(screener: IScreener, period: PeriodType) {
+    this.buyFilters = new FilterGroup(EMPTY, period);
+    this.sellFilters = new FilterGroup(EMPTY, period);
+    this.shortFilters = new FilterGroup(EMPTY, period);
+    this.coverFilters = new FilterGroup(EMPTY, period);
     if (screener.flags) {
       this.flags = screener.flags;
     }
@@ -46,12 +41,12 @@ export class Screener {
       this.shortCoverFilters = screener.shortCoverFilters;
     }
     if (screener.buySellFilters) {
-      this.buyFilters = new FilterGroup(screener.buySellFilters.enter);
-      this.sellFilters = new FilterGroup(screener.buySellFilters.exit);
+      this.buyFilters = new FilterGroup(screener.buySellFilters.enter, period);
+      this.sellFilters = new FilterGroup(screener.buySellFilters.exit, period);
     }
     if (screener.shortCoverFilters) {
-      this.shortFilters = new FilterGroup(screener.shortCoverFilters.enter);
-      this.coverFilters = new FilterGroup(screener.shortCoverFilters.exit);
+      this.shortFilters = new FilterGroup(screener.shortCoverFilters.enter, period);
+      this.coverFilters = new FilterGroup(screener.shortCoverFilters.exit, period);
     }
   }
 
@@ -71,13 +66,11 @@ export class Screener {
     return this.shortFilters.filters.length && this.coverFilters.filters.length;
   }
 
-  getAllVariables() {
-    const variables = new Array<string>();
-    const filters = this.getAllFilters();
-    for (const filter of filters) {
-      variables.push(...resolveFilterVariables(filter));
-    }
-    return variables;
+  getVariables(): FilterVariable[] {
+    const groups = [];
+    if (this.hasBuySellFilters()) groups.push(this.buyFilters, this.sellFilters);
+    if (this.hasShortCoverFilters()) groups.push(this.shortFilters, this.coverFilters);
+    return groups.flatMap((g) => g.getVariables());
   }
 
   getAllFilters() {

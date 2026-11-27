@@ -1,0 +1,161 @@
+{
+  "label": "baseline",
+  "at": "2026-11-22T20:12:47.827Z",
+  "base": "http://localhost:3101",
+  "profile": {
+    "name": "medium",
+    "period": 30,
+    "symbols": 25,
+    "startTime": 1787198400000,
+    "endTime": 1795237140000
+  },
+  "mix": "backtest",
+  "thinkMs": 1000,
+  "probeMs": 250,
+  "node": "v20.19.0",
+  "setup": {
+    "POST /user/register": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 215,
+      "p95": 310,
+      "p99": 310,
+      "max": 310
+    },
+    "POST /user/login": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 276,
+      "p95": 284,
+      "p99": 284,
+      "max": 284
+    },
+    "POST /api/group": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 13,
+      "p95": 14,
+      "p99": 14,
+      "max": 14
+    },
+    "POST /api/strategy": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 9,
+      "p95": 11,
+      "p99": 11,
+      "max": 11
+    },
+    "GET /api/group/all (check id)": {
+      "count": 11,
+      "perSecond": 11,
+      "errors": {},
+      "p50": 6,
+      "p95": 9,
+      "p99": 9,
+      "max": 9
+    }
+  },
+  "levels": [
+    {
+      "users": 1,
+      "seconds": 61.4,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 240,
+          "perSecond": 3.91,
+          "errors": {},
+          "p50": 4,
+          "p95": 314,
+          "p99": 350,
+          "max": 371
+        },
+        "PATCH /api/run/back-test": {
+          "count": 46,
+          "perSecond": 0.75,
+          "errors": {},
+          "p50": 390,
+          "p95": 418,
+          "p99": 504,
+          "max": 504
+        }
+      }
+    },
+    {
+      "users": 2,
+      "seconds": 61.4,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 224,
+          "perSecond": 3.65,
+          "errors": {},
+          "p50": 4,
+          "p95": 383,
+          "p99": 455,
+          "max": 487
+        },
+        "PATCH /api/run/back-test": {
+          "count": 82,
+          "perSecond": 1.34,
+          "errors": {},
+          "p50": 391,
+          "p95": 673,
+          "p99": 752,
+          "max": 752
+        }
+      }
+    },
+    {
+      "users": 5,
+      "seconds": 62,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 117,
+          "perSecond": 1.89,
+          "errors": {},
+          "p50": 387,
+          "p95": 1096,
+          "p99": 1518,
+          "max": 1519
+        },
+        "PATCH /api/run/back-test": {
+          "count": 145,
+          "perSecond": 2.34,
+          "errors": {},
+          "p50": 1057,
+          "p95": 1988,
+          "p99": 2464,
+          "max": 2879
+        }
+      }
+    },
+    {
+      "users": 10,
+      "seconds": 63.4,
+      "endpoints": {
+        "probe GET /api/strategy/names": {
+          "count": 71,
+          "perSecond": 1.12,
+          "errors": {},
+          "p50": 18,
+          "p95": 2150,
+          "p99": 2487,
+          "max": 2487
+        },
+        "PATCH /api/run/back-test": {
+          "count": 160,
+          "perSecond": 2.52,
+          "errors": {},
+          "p50": 2885,
+          "p95": 3438,
+          "p99": 3713,
+          "max": 3717
+        }
+      }
+    }
+  ]
+}

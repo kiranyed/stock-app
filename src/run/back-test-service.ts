@@ -4,7 +4,6 @@ import { StockTradeUtil } from "../shared/utilities/stock-trade";
 import { ITestConfig } from "../types/back-test-types";
 import { IBackTestScreenerJob, IJob } from "../types/data-processing-types";
 import { IStockGroup } from "../types/entity-types";
-import { StrategyUtil } from "../shared/utilities/strategy-util";
 
 enum DAY {
   SUNDAY,
@@ -23,12 +22,8 @@ export class BackTestService {
     config: ITestConfig,
   ) {
     const masterJob = new BackTestMasterJob(tests, group, config);
-    masterJob.prepare(tests);
     await masterJob.prepareJobs();
-    const periods = StrategyUtil.getAllTimePeriods(tests);
-
-    const minPeriod = Math.min(...periods);
-    config.minimumPeriod = minPeriod;
+    config.minimumPeriod = masterJob.periods()[0];
 
     this.iterateThroughCandlesAndRun(masterJob, config);
 

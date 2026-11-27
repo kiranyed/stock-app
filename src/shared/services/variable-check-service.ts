@@ -1,7 +1,7 @@
 import Error400 from "../../errors/error-400";
 import Error404 from "../../errors/error-404";
 import { PeriodType } from "../constants";
-import { BackTestService } from "../../run/back-test-service";
+import { BackTestPool } from "../../run/back-test-pool";
 import StockGroupRepository from "./repos/stock-group-repository";
 import { IFilter } from "../../types/strategy-types";
 import {
@@ -9,10 +9,8 @@ import {
   VariableCheckBackTest,
 } from "../../analysis/variable-check-back-test";
 import { IStockGroup } from "../../types/entity-types";
-import {
-  resolveFilterVariables,
-  resolvePrimaryVariable,
-} from "../utilities/filter-variable-resolver";
+import { filterVariables } from "../../engine/filter-specs";
+import { InvalidSpecError } from "../../engine/specs";
 
 const DEFAULT_LOOKBACK_DAYS = 400;
 
@@ -27,25 +25,30 @@ export interface IVariableCheckResponse {
 
 export class VariableCheckService {
   static async getVariableValuesForGroup(
+    userId: number,
     groupId: number,
     variables: IVariableDefinition[],
     startTime?: number,
     endTime?: number,
   ): Promise<IVariableCheckResponse> {
     const normalizedVariables = this.normalizeVariables(variables);
-    const group = await this.getGroupById(groupId);
+    const group = await this.getOwnedGroupById(userId, groupId);
 
     const resolvedRange = this.resolveTimeRange(startTime, endTime);
-    const variableJob = new VariableCheckBackTest(normalizedVariables);
-
-    const result = await BackTestService.runBackTests([variableJob], group, {
-      startTime: resolvedRange.startTime,
-      endTime: resolvedRange.endTime,
-      minimumPeriod: PeriodType.DAY,
+    const { results: result } = await BackTestPool.run(userId, {
+      kind: "variables",
+      variables: normalizedVariables,
+      group,
+      config: {
+        startTime: resolvedRange.startTime,
+        endTime: resolvedRange.endTime,
+        minimumPeriod: PeriodType.DAY,
+      },
     });
 
     return {
-      variables: variableJob.getRequestedVariables(),
+      // the worker ran its own copy; this one only names the columns
+      variables: new VariableCheckBackTest(normalizedVariables).getRequestedVariables(),
       rows: result[0] as IVariableCheckRow[],
     };
   }
@@ -66,26 +69,24 @@ export class VariableCheckService {
         ...variable,
       } as IFilter;
 
-      const dependencies = resolveFilterVariables(normalizedFilter);
-      const primaryVariable = resolvePrimaryVariable(normalizedFilter);
-      const hasInvalidKey = [...dependencies, primaryVariable].some(
-        (name) => name.includes("undefined") || name.includes("NaN"),
-      );
-      if (hasInvalidKey) {
-        throw new Error400(
-          `Variable at index ${index} is missing required parameters for ${variable.varName}`,
-        );
+      try {
+        filterVariables(normalizedFilter, PeriodType.DAY);
+      } catch (err) {
+        if (err instanceof InvalidSpecError) {
+          throw new Error400(`Variable at index ${index}: ${err.message}`);
+        }
+        throw err;
       }
 
       return normalizedFilter;
     });
   }
 
-  private static async getGroupById(groupId: number): Promise<IStockGroup> {
-    const response = await StockGroupRepository.getGroupById(groupId);
-    const group = response[0];
+  private static async getOwnedGroupById(userId: number, groupId: number): Promise<IStockGroup> {
+    const rows = await StockGroupRepository.getOwnedGroup(groupId, userId);
+    const group = rows[0];
     if (!group) {
-      throw new Error404(`${groupId} not found`);
+      throw new Error404("stock group not found");
     }
 
     const symbols = group.symbols;

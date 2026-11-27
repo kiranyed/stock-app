@@ -8,7 +8,7 @@ jest.mock("../../shared/utilities/mass-create-strategies");
 jest.mock("../../shared/services/db-api");
 jest.mock("../../shared/utilities/earnings-util");
 jest.mock("../../shared/utilities/stock-trade");
-jest.mock("../../shared/services/trading-api");
+jest.mock("../../providers/schwab/schwab-client");
 
 describe("utilRouter", () => {
   let req: Partial<AuthenticatedRequest> & {

@@ -1,5 +1,4 @@
 import * as fs from "fs";
-import { SchwabAPI } from "../services/trading-api";
 import { CONSTANTS, PeriodType } from "../constants";
 import { IGainTotal } from "../../types/back-test-types";
 import { IFilterData } from "../../types/data-processing-types";
@@ -238,48 +237,6 @@ const eastCoastDate = new Date(formatter.format(date));
       gainz[j + 1] = obj;
     }
     return gainz;
-  }
-
-  /* dangerous, only to be used in emergencies */
-  public static async sellAll() {
-    await SchwabAPI.resetAccessToken();
-    const positions = await SchwabAPI.getAccountPositions();
-    const symbols = new Array<string>();
-    const symbolPrices: Record<string, number> = {};
-    for (const pos of positions) {
-      symbols.push(pos.instrument.symbol);
-    }
-    const results = await SchwabAPI.getStocks(symbols);
-    for (const result of results) {
-      symbolPrices[result.symbol] = result.regularMarketPrice;
-    }
-    for (const pos of positions) {
-      const symbol = pos.instrument.symbol;
-      if (
-        symbol === "TWLO" ||
-        symbol === "FSLY" ||
-        symbol === "TTD" ||
-        symbol === "AYX"
-      ) {
-        continue;
-      } else {
-        if (pos.longQuantity) {
-          SchwabAPI.sellStock(
-            symbol,
-            symbolPrices[symbol],
-            pos.longQuantity,
-          ).catch((err) => {
-            console.log(err);
-          });
-        } else {
-          SchwabAPI.buyToCoverStock(
-            symbol,
-            symbolPrices[symbol],
-            pos.shortQuantity,
-          );
-        }
-      }
-    }
   }
 
   public static getStringSurroundedByQuotes(string: string) {

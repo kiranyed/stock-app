@@ -22,7 +22,7 @@ jest.mock("../../shared/classes/screener", () => ({
   Screener: jest.fn().mockImplementation(() => ({
     runSellFilters: jest.fn().mockReturnValue(false),
     runBuyFilters: jest.fn().mockReturnValue(true),
-    getAllVariables: jest.fn().mockReturnValue(["timeSinceEntry"]),
+    getVariables: jest.fn().mockReturnValue([{ name: "timeSinceEntry" }]),
     hasFlags: jest.fn().mockReturnValue(false),
     hasBuySellFilters: jest.fn().mockReturnValue(true),
     hasShortCoverFilters: jest.fn().mockReturnValue(false),
@@ -93,7 +93,7 @@ describe("BackTest", () => {
       backTest["positions"]["AAPL"] = {
         price: 145,
         enterTime: datetime - 100000,
-        screener: new Screener({} as IScreener),
+        screener: new Screener({} as IScreener, PeriodType.MINUTE),
         long: true,
         quantity: 10,
         timeSinceEntry: 5,
@@ -126,7 +126,7 @@ describe("BackTest", () => {
         },
       ];
 
-      const screener2 = new Screener({} as IScreener);
+      const screener2 = new Screener({} as IScreener, PeriodType.MINUTE);
 
       backTest["positions"]["AAPL"] = {
         price: 145,

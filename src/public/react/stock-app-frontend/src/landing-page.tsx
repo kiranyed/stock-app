@@ -4,7 +4,6 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { NavLink, Route, HashRouter, Routes } from "react-router-dom";
 import BackTestPage from "./back-test/run-back-tests";
-import ShowCharts from "./trading-dashboard/show-charts";
 import "./home/home-page.scss";
 import "./shared/nav-bar.scss";
 import AnalysisPage from "./analysis/analysis";
@@ -14,9 +13,9 @@ import useToken from "./auth/use-token";
 import RunStrategiesPage from "./real-time-trading/strategy-runs/run-strategies";
 import StockGroupsPage from "./real-time-trading/stock-groups";
 import EditStrategiesPageNew from "./real-time-trading/edit-strategies/edit-strategies";
-import TradingPage from "./trading-dashboard/trading-page";
 import Home from "./home/home-page";
 import BackTestHistoryPage from "./back-test/back-test-history";
+import SettingsPage from "./settings/settings-page";
 
 function Landing() {
   const { token, setToken } = useToken();
@@ -56,9 +55,6 @@ function Landing() {
             <NavLink to="/realtime-trading/variable-check" className="nav-item">
               Variable Check
             </NavLink>
-            <NavLink to="/show-charts" className="nav-item">
-              Charts
-            </NavLink>
             <NavLink to="/run-strategies" className="nav-item">
               Run strategies
             </NavLink>
@@ -68,8 +64,8 @@ function Landing() {
             <NavLink to="/stock-groups" className="nav-item">
               Stock groups
             </NavLink>
-            <NavLink to="/trading-page" className="nav-item">
-              Trading
+            <NavLink to="/settings" className="nav-item">
+              Settings
             </NavLink>
           </nav>
 
@@ -98,14 +94,13 @@ function Landing() {
               path="/realtime-trading/variable-check"
               element={<VariableCheckPage />}
             />
-            <Route path="/show-charts" element={<ShowCharts />} />
             <Route path="/run-strategies" element={<RunStrategiesPage />} />
             <Route
               path="/edit-strategies"
               element={<EditStrategiesPageNew />}
             />
             <Route path="/stock-groups" element={<StockGroupsPage />} />
-            <Route path="/trading-page" element={<TradingPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/" element={<Home user={user} />} />
           </Routes>
         )}

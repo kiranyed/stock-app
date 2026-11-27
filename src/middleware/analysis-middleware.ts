@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Error400 from "../errors/error-400";
-import Error404 from "../errors/error-404";
 import { IFilter } from "../types/strategy-types";
 import { checkFilters, isLike, validateFilter } from "./shared-funcs";
-import StockGroupRepository from "../shared/services/repos/stock-group-repository";
 import { Like } from "../types/general-types";
 
 type IAnalysisRequest = {
@@ -53,13 +51,6 @@ function isVariableCheckRequest(
   );
 }
 
-async function validateGroup(groupId: number) {
-  const a = await StockGroupRepository.getSymbolsFromGroupById(groupId);
-  if (!a[0]) {
-    throw new Error404(groupId + " not found");
-  }
-}
-
 function validateStartAndEndTime(startTime: string, endTime: string) {
   const start = parseFloat(startTime);
   const end = parseFloat(endTime);
@@ -85,7 +76,6 @@ export async function validateAnalysisRequest(
       if (checkFilters(payload.dataFilters)) {
         payload.dataFilters.every((filter) => validateFilter(filter));
       }
-      await validateGroup(payload.groupId);
       validateStartAndEndTime(payload.startTime, payload.endTime);
       next();
     } else {
@@ -134,7 +124,6 @@ export async function validateVariableCheckRequest(
       );
     }
 
-    await validateGroup(payload.groupId);
     next();
   } catch (err) {
     next(err);

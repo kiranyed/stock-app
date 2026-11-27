@@ -1,4 +1,4 @@
-import { SchwabAPI } from "../services/trading-api";
+import { SchwabClient } from "../../providers/schwab/schwab-client";
 import { CONSTANTS } from "../constants";
 import axios from "axios";
 import { DatabaseAPI } from "../services/db-api";
@@ -60,7 +60,7 @@ export class StockDataUtil {
     /* getting candle data from TD */
     for (const symbol of syms) {
       promises.push(
-        SchwabAPI.getHistoryWithBounds(
+        SchwabClient.getPriceHistory(
           symbol,
           periodType,
           frequencyType,
@@ -202,7 +202,7 @@ export class StockDataUtil {
     const promises = new Array<Promise<ICandleData>>();
     for (const symbol of symbols) {
       promises.push(
-        SchwabAPI.getHistoryWithBounds(
+        SchwabClient.getPriceHistory(
           symbol,
           "day",
           "minute",
@@ -249,7 +249,7 @@ export class StockDataUtil {
     const gains = new Array<number>();
     for (const stock of stocks) {
       promises.push(
-        SchwabAPI.getHistoryWithBounds(
+        SchwabClient.getPriceHistory(
           stock,
           "month",
           "daily",
